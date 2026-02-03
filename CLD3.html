@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabVIEW CLD 練習 3：動作引擎計時器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .labview-panel {
+            background-color: #d1d5db;
+            border: 2px solid #9ca3af;
+            box-shadow: inset 2px 2px 0px #fff, inset -2px -2px 0px #4b5563;
+        }
+        .control-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body class="text-slate-800 leading-relaxed">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white py-10 shadow-lg">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2">CLD 練習 3：動作引擎計時器</h1>
+            <p class="text-slate-400">Action Engine Timer - 功能性全域變數 (FGV) 練習</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-4xl">
+        
+        <!-- Objective Section -->
+        <section class="mb-10 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex items-center mb-4">
+                <i class="fas fa-bullseye text-blue-600 text-2xl mr-3"></i>
+                <h2 class="text-2xl font-bold text-slate-800">練習目標</h2>
+            </div>
+            <p class="text-slate-600">
+                使用 LabVIEW 中的 <span class="font-mono bg-slate-100 px-1 rounded">Get Date/Time in Seconds</span> (取得日期/時間（秒）) 或 
+                <span class="font-mono bg-slate-100 px-1 rounded">Tick Count (ms)</span> (滴答計數) 計時 VI，並根據指定的人機介面開發一個
+                <strong>功能性全域變數 (FGV)</strong> 計時器。
+            </p>
+        </section>
+
+        <!-- General Operation & Terminology -->
+        <div class="grid md:grid-cols-2 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-cog text-blue-600 text-xl mr-3"></i>
+                    <h2 class="text-xl font-bold">一般運作流程</h2>
+                </div>
+                <ul class="space-y-3 text-slate-600">
+                    <li class="flex items-start">
+                        <span class="text-blue-500 mr-2 mt-1">●</span>
+                        從零開始累加至「時間目標」。
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blue-500 mr-2 mt-1">●</span>
+                        持續更新「已過時間」指示器。
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blue-500 mr-2 mt-1">●</span>
+                        時間到期時，「時間是否已過」LED 必須亮起。
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blue-500 mr-2 mt-1">●</span>
+                        必須具備<strong>暫停 (Pause)</strong> 與<strong>恢復 (Resume)</strong> 功能。
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-list-ul text-blue-600 text-xl mr-3"></i>
+                    <h2 class="text-xl font-bold">人機介面術語</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200">
+                                <th class="py-2 px-3 font-bold">控制元件</th>
+                                <th class="py-2 px-3 font-bold">說明</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-600">
+                            <tr class="border-b border-slate-100">
+                                <td class="py-2 px-3 font-medium">Timer Mode</td>
+                                <td class="py-2 px-3">用於 FGV 的列舉 (Enum) 狀態。</td>
+                            </tr>
+                            <tr class="border-b border-slate-100">
+                                <td class="py-2 px-3 font-medium">Time Target</td>
+                                <td class="py-2 px-3">計時目標秒數。</td>
+                            </tr>
+                            <tr class="border-b border-slate-100">
+                                <td class="py-2 px-3 font-medium">Elapsed Time</td>
+                                <td class="py-2 px-3">顯示當前已過秒數與毫秒。</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-3 font-medium">Has Elapsed</td>
+                                <td class="py-2 px-3">到期指示 LED。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timer Modes Detailed Section -->
+        <section class="mb-10 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex items-center mb-6">
+                <i class="fas fa-toggle-on text-blue-600 text-2xl mr-3"></i>
+                <h2 class="text-2xl font-bold">計時器模式 (Timer Modes)</h2>
+            </div>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                    <h3 class="font-bold text-blue-800 mb-2 underline">Start Timer</h3>
+                    <p class="text-sm text-blue-700">使用設定的「時間目標」重新啟動計時程序。</p>
+                </div>
+                <div class="p-4 bg-green-50 border border-green-100 rounded-lg">
+                    <h3 class="font-bold text-green-800 mb-2 underline">Read Time</h3>
+                    <p class="text-sm text-green-700">計算並傳回當前的已過時間與到期狀態。</p>
+                </div>
+                <div class="p-4 bg-amber-50 border border-amber-100 rounded-lg">
+                    <h3 class="font-bold text-amber-800 mb-2 underline">Pause</h3>
+                    <p class="text-sm text-amber-700">暫停計時，保持當前時間數值，停止增加。</p>
+                </div>
+                <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-lg">
+                    <h3 class="font-bold text-indigo-800 mb-2 underline">Resume</h3>
+                    <p class="text-sm text-indigo-700">從先前暫停的計時點恢復運作。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mock LabVIEW Panel (Visual Aid) -->
+        <section class="mb-10">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fas fa-desktop text-blue-600 mr-3"></i>
+                人機介面模擬 (Figure 1)
+            </h2>
+            <div class="labview-panel p-8 rounded shadow-inner flex flex-col items-center">
+                <div class="grid grid-cols-2 gap-12 w-full max-w-lg">
+                    <!-- Left Column -->
+                    <div class="space-y-6">
+                        <div>
+                            <p class="control-label">Timer Mode</p>
+                            <div class="bg-white border border-gray-400 px-2 py-1 flex justify-between items-center text-sm shadow-sm">
+                                <span>Start Timer</span>
+                                <i class="fas fa-caret-down text-gray-400 text-xs"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="control-label">Time Target (s)</p>
+                            <div class="bg-white border border-gray-400 px-2 py-1 text-sm text-right shadow-sm">
+                                4.00
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right Column -->
+                    <div class="space-y-6">
+                        <div>
+                            <p class="control-label">Has Time Elapsed</p>
+                            <div class="w-16 h-6 bg-green-950 border border-gray-500 rounded-sm"></div>
+                        </div>
+                        <div>
+                            <p class="control-label">Elapsed Time (s.ss)</p>
+                            <div class="bg-gray-300 border border-gray-400 px-2 py-1 text-sm text-right shadow-sm">
+                                0.00
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-center text-sm text-slate-500 mt-2">※ 模擬 LabVIEW 預設外觀</p>
+        </section>
+
+        <!-- Self-Reflection Questions -->
+        <section class="mb-10 bg-slate-900 text-white p-8 rounded-xl shadow-xl">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fas fa-question-circle text-blue-400 mr-3"></i>
+                思考問題 (Questions)
+            </h2>
+            <div class="space-y-6">
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <p class="font-medium text-slate-300">1. 有什麼方法可以解決位元計時器的「翻轉」(Turnover) 事件？</p>
+                </div>
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <p class="font-medium text-slate-300">2. 「已過時間」可以用來實現運行總時間的累加嗎？</p>
+                </div>
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <p class="font-medium text-slate-300">3. 使用時間戳記 (Time Stamp) 時，日期和年份重要嗎？</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Challenge Section -->
+        <section class="mb-10 border-2 border-dashed border-slate-300 p-6 rounded-xl">
+            <div class="flex items-center mb-4">
+                <i class="fas fa-trophy text-yellow-500 text-2xl mr-3"></i>
+                <h2 class="text-2xl font-bold">挑戰練習 (Challenge Exercise)</h2>
+            </div>
+            <p class="text-slate-600 mb-4">
+                開發一個<strong>不具備暫停功能</strong>的計時器。
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-slate-600 ml-4">
+                <li>僅包含兩個狀態：<strong>Elapsed</strong> (計時中) 與 <strong>Reset</strong> (重設)。</li>
+                <li>時間目標 (Wait) 直接在啟動階段設定，而非作為獨立狀態。</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-100 border-t border-slate-200 py-8 text-center text-slate-500 text-sm">
+        <p>© 2026 LabVIEW CLD 學習筆記 | 文件編號：CLD Exercise 3</p>
+    </footer>
+
+</body>
+</html>
