@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高中入學成績積點轉換與落點分析</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-blue-800 mb-2">高中入學成績積點轉換與落點分析</h1>
+            <p class="text-gray-600">依據 111-114 年數據統計與預估</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Column: Inputs -->
+            <div class="lg:col-span-4 bg-white rounded-xl shadow-lg p-6 h-fit">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">1. 輸入成績 (百分制)</h2>
+                <form id="scoreForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">國文 (Chinese)</label>
+                        <input type="number" id="score_chi" min="0" max="100" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="0-100" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">數學 (Math)</label>
+                        <input type="number" id="score_math" min="0" max="100" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="0-100" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">英語 (English)</label>
+                        <input type="number" id="score_eng" min="0" max="100" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="0-100" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">社會 (Social Studies)</label>
+                        <input type="number" id="score_soc" min="0" max="100" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="0-100" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">自然 (Science)</label>
+                        <input type="number" id="score_sci" min="0" max="100" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="0-100" required>
+                    </div>
+
+                    <button type="button" onclick="calculateResults()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow transition duration-200 mt-4">
+                        開始計算與分析
+                    </button>
+                    <button type="button" onclick="fillExample()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 rounded-lg shadow-sm transition duration-200 text-sm">
+                        填入範例資料 (85分)
+                    </button>
+                </form>
+
+                <!-- Yearly Summary Stats (Shown after calc) -->
+                <div id="yearStatsBox" class="hidden mt-6 bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h3 class="text-md font-bold text-blue-800 mb-2">歷年統計 (111-114)</h3>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">總分合計:</span>
+                        <span id="totalScoreRaw" class="font-mono font-bold text-gray-800">0</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm mt-1">
+                        <span class="text-gray-600">歷年最低總點數:</span>
+                        <span id="minYearlyPoints" class="font-mono font-bold text-red-600">0</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm mt-1">
+                        <span class="text-gray-600">歷年最高總點數:</span>
+                        <span id="maxYearlyPoints" class="font-mono font-bold text-green-600">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Outputs -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <!-- 1. Score Table -->
+                <div class="bg-white rounded-xl shadow-lg p-6 overflow-hidden">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                        <span class="bg-blue-100 text-blue-800 text-sm py-1 px-2 rounded mr-2">分析 1</span>
+                        成績轉換明細表 (依據平均標準)
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3">科目</th>
+                                    <th scope="col" class="px-4 py-3">成績</th>
+                                    <th scope="col" class="px-4 py-3 text-center text-gray-500" title="111-114年數據中的最低點數">歷年最低點</th>
+                                    <th scope="col" class="px-4 py-3 text-center text-gray-500" title="111-114年數據中的最高點數">歷年最高點</th>
+                                    <th scope="col" class="px-4 py-3 text-center font-bold text-blue-600">平均點數</th>
+                                    <th scope="col" class="px-4 py-3 text-center">平均標示</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultTableBody">
+                                <tr><td colspan="6" class="px-4 py-4 text-center text-gray-400">請輸入成績並點擊計算</td></tr>
+                            </tbody>
+                            <tfoot id="tableFooter" class="hidden font-bold bg-gray-50 text-gray-900">
+                                <tr>
+                                    <td class="px-4 py-3">總計</td>
+                                    <td class="px-4 py-3" id="footTotalScore">0</td>
+                                    <td class="px-4 py-3 text-center">-</td>
+                                    <td class="px-4 py-3 text-center">-</td>
+                                    <td class="px-4 py-3 text-center text-lg text-blue-700" id="footTotalPoints">0</td>
+                                    <td class="px-4 py-3 text-center">-</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. Radar Chart -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                        <span class="bg-blue-100 text-blue-800 text-sm py-1 px-2 rounded mr-2">分析 2</span>
+                        五科積點雷達圖
+                    </h2>
+                    <div class="h-64 w-full flex justify-center">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 3. School Prediction -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                        <span class="bg-green-100 text-green-800 text-sm py-1 px-2 rounded mr-2">分析 3</span>
+                        可能錄取學校預估
+                    </h2>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                        <p class="text-sm text-yellow-700">
+                            <strong>篩選條件：</strong> 總點數 <span id="rangeLabel" class="font-bold"></span> 範圍內的學校。<br>
+                            <span class="text-xs">*此為依據歷史數據的落點預估，僅供參考，實際錄取標準依當年簡章與考情為準。</span>
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="schoolList">
+                        <div class="col-span-full text-center text-gray-400 py-4">尚無資料</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================= DATA SECTION =================
+        // 模擬從 CSV 讀取的數據。 
+        // 結構：等級: { 點數, 科目門檻: [國, 數, 英, 社, 自] }
+        // 注意：這裡使用 "大於等於此分數" 為門檻。
+        // 等級順序: C, B, B+, B++, A, A+, A++
+        // 索引對應: 0:國文, 1:數學, 2:英語, 3:社會, 4:自然
+
+        const levels = [
+            { label: 'C',   points: 1 },
+            { label: 'B',   points: 2 },
+            { label: 'B+',  points: 3 },
+            { label: 'B++', points: 4 },
+            { label: 'A',   points: 5 },
+            { label: 'A+',  points: 6 },
+            { label: 'A++', points: 7 }
+        ];
+
+        // 依據上傳圖片與文件片段轉錄的數據 (門檻值)
+        const thresholds = {
+            '111': {
+                'chi': [0, 42.9, 66.7, 76.2, 85.7, 90.5, 95.2],
+                'math': [0, 40.6, 59.4, 67.1, 76.2, 85.7, 93.2],
+                'eng': [0, 38.4, 71.1, 83.2, 90.7, 95.3, 98.1],
+                'soc': [0, 38.9, 64.8, 75.9, 88.9, 94.4, 96.3],
+                'sci': [0, 36, 58, 72, 86, 92, 96]
+            },
+            '112': {
+                'chi': [0, 42.9, 66.7, 76.2, 85.7, 90.5, 95.2],
+                'math': [0, 38.8, 56.9, 66.2, 76.2, 85.7, 91.6],
+                'eng': [0, 38.4, 69, 82.3, 90.7, 96.2, 98.1],
+                'soc': [0, 38.9, 63, 75.9, 87, 92.6, 94.4],
+                'sci': [0, 38, 60, 74, 88, 94, 96]
+            },
+            '113': {
+                'chi': [0, 42.9, 71.4, 78.6, 88.1, 92.9, 95.2],
+                'math': [0, 38.1, 56.9, 67.4, 76.4, 86.4, 93.4],
+                'eng': [0, 38.4, 70, 82.2, 90.7, 96.2, 98.1],
+                'soc': [0, 38.9, 66.7, 77.8, 88.9, 92.6, 96.3],
+                'sci': [0, 38, 60, 74, 88, 94, 96]
+            },
+            '114': { // 依據 114 檔案 snippet
+                'chi': [0, 42.9, 66.7, 76.2, 85.7, 90.5, 95.2],
+                'math': [0, 40.6, 59.4, 67.1, 76.2, 85.7, 93.2],
+                'eng': [0, 38.4, 71.1, 83.2, 90.7, 95.3, 98.1],
+                'soc': [0, 38.9, 64.8, 75.9, 88.9, 94.4, 96.3],
+                'sci': [0, 36, 58, 72, 86, 92, 96]
+            },
+            'avg': { // 依據 average_scores_111_114 檔案
+                'chi': [0, 42.9, 67.88, 76.8, 86.3, 91.1, 95.2],
+                'math': [0, 39.52, 58.15, 66.95, 76.25, 85.88, 92.85],
+                'eng': [0, 38.4, 70.3, 82.72, 90.7, 95.75, 98.1],
+                'soc': [0, 38.9, 64.82, 76.38, 88.43, 93.5, 95.82],
+                'sci': [0, 37, 59, 73, 87, 93, 96]
+            }
+        };
+
+        // 學校資料庫 (合併上傳片段與常見學校預估，模擬完整資料庫)
+        const schoolsData = [
+            { name: "建國中學", points: 34 }, { name: "北一女中", points: 33 },
+            { name: "師大附中", points: 33 }, { name: "成功高中", points: 32 },
+            { name: "中山女高", points: 31 }, { name: "松山高中", points: 30 },
+            { name: "大同高中", points: 29 }, { name: "中崙高中", points: 28 },
+            { name: "麗山高中", points: 28 }, { name: "板橋高中", points: 27 },
+            { name: "大直高中", points: 26 }, { name: "成淵高中", points: 25 },
+            { name: "和平高中", points: 24 }, { name: "海山高中", points: 24 },
+            { name: "內湖高中", points: 23 }, { name: "西松高中", points: 22 },
+            { name: "中和高中", points: 21 }, { name: "景美女中", points: 20 },
+            { name: "永平高中", points: 19 }, { name: "新莊高中", points: 18 },
+            { name: "新店高中", points: 17 }, { name: "丹鳳高中", points: 16 },
+            { name: "清水高中", points: 15 }, { name: "三民高中", points: 15 },
+            { name: "錦和高中", points: 14 }, { name: "光復高中", points: 14 },
+            { name: "林口高中", points: 14 }, { name: "樹林高中", points: 14 },
+            { name: "松山工農", points: 14 }, { name: "秀峰高中", points: 13 },
+            { name: "復興高中", points: 13 }, { name: "泰山高中", points: 13 },
+            { name: "新北高工", points: 13 }, { name: "三重商工", points: 12 },
+            { name: "石碇高中", points: 12 }, { name: "明德高中", points: 12 },
+            { name: "木柵高工", points: 11 }, { name: "南港高工", points: 11 },
+            { name: "內湖高工", points: 11 }, { name: "基隆商工", points: 10 },
+            { name: "鶯歌工商", points: 10 }, { name: "樟樹高中", points: 10 },
+            { name: "瑞芳高工", points: 9 },  { name: "海大附中", points: 9 },
+            { name: "金山高中", points: 5 },  { name: "雙溪高中", points: 5 },
+            { name: "基隆八斗", points: 5 },  { name: "基隆中山", points: 5 },
+            { name: "基隆暖暖", points: 5 },  { name: "淡水商工", points: 2 }
+        ];
+
+        // Chart Instance
+        let radarChartInstance = null;
+
+        // Helper: Get Points and Label based on score and subject thresholds
+        function getConversion(score, subjectKey, year) {
+            const thres = thresholds[year][subjectKey];
+            let levelIndex = 0;
+            // Find the highest threshold the score meets
+            for (let i = 0; i < thres.length; i++) {
+                if (score >= thres[i]) {
+                    levelIndex = i;
+                } else {
+                    break;
+                }
+            }
+            return {
+                points: levels[levelIndex].points,
+                label: levels[levelIndex].label
+            };
+        }
+
+        function fillExample() {
+            document.getElementById('score_chi').value = 85;
+            document.getElementById('score_math').value = 75;
+            document.getElementById('score_eng').value = 82;
+            document.getElementById('score_soc').value = 80;
+            document.getElementById('score_sci').value = 78;
+        }
+
+        function calculateResults() {
+            // 1. Get Inputs
+            const scores = {
+                'chi': parseFloat(document.getElementById('score_chi').value) || 0,
+                'math': parseFloat(document.getElementById('score_math').value) || 0,
+                'eng': parseFloat(document.getElementById('score_eng').value) || 0,
+                'soc': parseFloat(document.getElementById('score_soc').value) || 0,
+                'sci': parseFloat(document.getElementById('score_sci').value) || 0
+            };
+
+            const subjects = [
+                { key: 'chi', name: '國文' },
+                { key: 'math', name: '數學' },
+                { key: 'eng', name: '英語' },
+                { key: 'soc', name: '社會' },
+                { key: 'sci', name: '自然' }
+            ];
+
+            const years = ['111', '112', '113', '114'];
+
+            // 2. Statistics across years (111-114)
+            let stats = {
+                subjects: {}, // { chi: { min: 7, max: 7 }, ... }
+                yearlyTotals: [] // [30, 31, 29, 30]
+            };
+
+            // Init subject stats
+            subjects.forEach(sub => stats.subjects[sub.key] = { min: 7, max: 0 });
+
+            years.forEach(year => {
+                let currentYearTotal = 0;
+                subjects.forEach(sub => {
+                    const result = getConversion(scores[sub.key], sub.key, year);
+                    
+                    // Update Subject Min/Max
+                    if (result.points < stats.subjects[sub.key].min) stats.subjects[sub.key].min = result.points;
+                    if (result.points > stats.subjects[sub.key].max) stats.subjects[sub.key].max = result.points;
+
+                    currentYearTotal += result.points;
+                });
+                stats.yearlyTotals.push(currentYearTotal);
+            });
+
+            const minYearlyTotal = Math.min(...stats.yearlyTotals);
+            const maxYearlyTotal = Math.max(...stats.yearlyTotals);
+            const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+
+            // Update Stats Box
+            document.getElementById('yearStatsBox').classList.remove('hidden');
+            document.getElementById('totalScoreRaw').innerText = totalScore.toFixed(1);
+            document.getElementById('minYearlyPoints').innerText = minYearlyTotal;
+            document.getElementById('maxYearlyPoints').innerText = maxYearlyTotal;
+
+
+            // 3. Calculate Average Data (For Table & Chart)
+            let avgTotalPoints = 0;
+            const tableBody = document.getElementById('resultTableBody');
+            tableBody.innerHTML = '';
+            
+            let chartData = [];
+
+            subjects.forEach(sub => {
+                const avgResult = getConversion(scores[sub.key], sub.key, 'avg');
+                avgTotalPoints += avgResult.points;
+                chartData.push(avgResult.points);
+
+                // Row HTML
+                const row = `
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium text-gray-900">${sub.name}</td>
+                        <td class="px-4 py-3">${scores[sub.key]}</td>
+                        <td class="px-4 py-3 text-center text-gray-500">${stats.subjects[sub.key].min}</td>
+                        <td class="px-4 py-3 text-center text-gray-500">${stats.subjects[sub.key].max}</td>
+                        <td class="px-4 py-3 text-center font-bold text-blue-600 bg-blue-50">${avgResult.points}</td>
+                        <td class="px-4 py-3 text-center text-gray-700 bg-gray-50">${avgResult.label}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+            // Footer
+            document.getElementById('tableFooter').classList.remove('hidden');
+            document.getElementById('footTotalScore').innerText = totalScore.toFixed(1);
+            document.getElementById('footTotalPoints').innerText = avgTotalPoints;
+
+            // 4. Radar Chart
+            updateRadarChart(subjects.map(s => s.name), chartData);
+
+            // 5. School Prediction
+            updateSchoolList(avgTotalPoints);
+        }
+
+        function updateRadarChart(labels, data) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            if (radarChartInstance) {
+                radarChartInstance.destroy();
+            }
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '積點',
+                        data: data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 0,
+                            suggestedMax: 7,
+                            ticks: { stepSize: 1 }
+                        }
+                    },
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function updateSchoolList(totalPoints) {
+            const container = document.getElementById('schoolList');
+            const rangeMin = totalPoints - 2;
+            const rangeMax = totalPoints + 2;
+            
+            document.getElementById('rangeLabel').innerText = `${rangeMin} ~ ${rangeMax}`;
+
+            const matchedSchools = schoolsData.filter(school => 
+                school.points >= rangeMin && school.points <= rangeMax
+            );
+            
+            // Sort by points descending
+            matchedSchools.sort((a, b) => b.points - a.points);
+
+            container.innerHTML = '';
+
+            if (matchedSchools.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center text-gray-500 py-4 bg-gray-50 rounded">此區間無符合的預估學校資料，或分數超出範圍。</div>`;
+                return;
+            }
+
+            matchedSchools.forEach(school => {
+                // Color coding based on risk
+                let badgeClass = "bg-gray-100 text-gray-800";
+                let statusText = "落點";
+                
+                if (school.points > totalPoints) {
+                    badgeClass = "bg-orange-100 text-orange-800";
+                    statusText = "夢幻";
+                } else if (school.points < totalPoints) {
+                    badgeClass = "bg-green-100 text-green-800";
+                    statusText = "安全";
+                }
+
+                const card = `
+                    <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition">
+                        <span class="font-medium text-gray-800">${school.name}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-blue-600">${school.points}點</span>
+                            <span class="text-xs px-2 py-0.5 rounded ${badgeClass}">${statusText}</span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+    </script>
+</body>
+</html>
