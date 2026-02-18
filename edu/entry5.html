@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北北基◎從段考成績預估會考積分與落點分析</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        /* Custom Scrollbar for inner containers */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-gray-100 text-sm text-gray-800 flex flex-col min-h-screen lg:h-screen lg:overflow-hidden">
+
+    <!-- Compact Header -->
+    <header class="bg-white shadow-sm py-2 px-4 flex-none z-10 flex flex-col md:flex-row justify-between items-center h-auto md:h-12 gap-2 md:gap-0">
+        <div class="flex flex-col md:flex-row items-center md:items-baseline gap-1 md:gap-3">
+            <h1 class="text-lg md:text-xl font-bold text-blue-800 text-center md:text-left">北北基◎從段考成績預估會考積分與落點分析</h1>
+            <p class="text-xs text-gray-500">依據 111-114 年數據統計與預估</p>
+        </div>
+        <div class="text-xs text-gray-400 hidden md:block">Dashboard View</div>
+    </header>
+
+    <!-- Main Content Container 
+         Mobile: flex-col, auto height
+         Desktop (lg): flex-row, fixed height, hidden overflow
+    -->
+    <div class="flex-1 flex flex-col lg:flex-row p-2 gap-2 lg:overflow-hidden lg:h-[calc(100vh-3rem)]">
+        
+        <!-- Left Column: Inputs & Stats 
+             Mobile: w-full, height auto
+             Desktop: w-1/4, fixed width, full height
+        -->
+        <aside class="w-full lg:w-1/4 lg:min-w-[280px] lg:max-w-[320px] bg-white rounded-lg shadow-md flex flex-col flex-none lg:h-full order-1">
+            <div class="p-3 border-b flex-none bg-blue-50 rounded-t-lg">
+                <h2 class="text-base font-bold text-gray-800">1. 輸入成績 (百分制)</h2>
+            </div>
+            
+            <div class="p-3 lg:overflow-y-auto flex-1">
+                <form id="scoreForm" class="space-y-3">
+                    <div class="grid grid-cols-1 gap-2">
+                        <div class="flex items-center gap-2">
+                            <label class="w-12 font-medium text-gray-700">國文</label>
+                            <input type="number" id="score_chi" min="0" max="100" class="flex-1 border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="0-100">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="w-12 font-medium text-gray-700">數學</label>
+                            <input type="number" id="score_math" min="0" max="100" class="flex-1 border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="0-100">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="w-12 font-medium text-gray-700">英語</label>
+                            <input type="number" id="score_eng" min="0" max="100" class="flex-1 border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="0-100">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="w-12 font-medium text-gray-700">社會</label>
+                            <input type="number" id="score_soc" min="0" max="100" class="flex-1 border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="0-100">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="w-12 font-medium text-gray-700">自然</label>
+                            <input type="number" id="score_sci" min="0" max="100" class="flex-1 border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none" placeholder="0-100">
+                        </div>
+                    </div>
+
+                    <div class="pt-2 space-y-2">
+                        <button type="button" onclick="calculateResults()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded shadow transition text-sm">
+                            計算與分析
+                        </button>
+                        <button type="button" onclick="fillExample()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium py-1.5 rounded border border-gray-300 transition text-xs">
+                            填入範例 (85分)
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Yearly Summary Stats -->
+                <div id="yearStatsBox" class="hidden mt-4 pt-3 border-t">
+                    <h3 class="text-sm font-bold text-blue-800 mb-2">歷年統計 (111-114)</h3>
+                    <div class="space-y-1 text-sm bg-blue-50 p-2 rounded">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">總分合計:</span>
+                            <span id="totalScoreRaw" class="font-mono font-bold text-gray-800">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">最低總點:</span>
+                            <span id="minYearlyPoints" class="font-mono font-bold text-red-600">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">最高總點:</span>
+                            <span id="maxYearlyPoints" class="font-mono font-bold text-green-600">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Column: Outputs 
+             Mobile: flex-col, overflow visible
+             Desktop: flex-col, overflow hidden
+        -->
+        <main class="flex-1 flex flex-col gap-2 lg:overflow-hidden order-2">
+            
+            <!-- Top Section: Table & Chart 
+                 Mobile: flex-col, auto height
+                 Desktop: flex-row, fixed height %
+            -->
+            <div class="flex-none flex flex-col lg:flex-row gap-2 lg:h-[55%] lg:min-h-[300px]">
+                
+                <!-- 1. Score Table -->
+                <div class="w-full lg:w-3/5 bg-white rounded-lg shadow-md flex flex-col h-[350px] lg:h-full overflow-hidden">
+                    <div class="px-3 py-2 border-b bg-gray-50 flex justify-between items-center flex-none">
+                        <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                            <span class="bg-blue-100 text-blue-800 text-xs px-1.5 rounded">分析 1</span>
+                            成績轉換明細
+                        </h2>
+                        <span class="text-xs text-gray-500">依據平均標準</span>
+                    </div>
+                    <div class="flex-1 overflow-auto p-0 relative">
+                        <table class="w-full text-left border-collapse min-w-[400px]"> <!-- min-w ensures scroll on very small screens -->
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10 shadow-sm">
+                                <tr>
+                                    <th class="px-3 py-2 whitespace-nowrap">科目</th>
+                                    <th class="px-3 py-2 whitespace-nowrap">成績</th>
+                                    <th class="px-2 py-2 text-center text-gray-500 whitespace-nowrap text-[10px] leading-tight">歷年<br>最低</th>
+                                    <th class="px-2 py-2 text-center text-gray-500 whitespace-nowrap text-[10px] leading-tight">歷年<br>最高</th>
+                                    <th class="px-3 py-2 text-center text-blue-700 whitespace-nowrap">平均點數</th>
+                                    <th class="px-3 py-2 text-center whitespace-nowrap">標示</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultTableBody" class="text-sm">
+                                <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">請輸入成績並點擊計算</td></tr>
+                            </tbody>
+                            <tfoot id="tableFooter" class="hidden font-bold bg-gray-50 text-gray-900 text-xs sticky bottom-0 shadow-inner">
+                                <tr>
+                                    <td class="px-3 py-2">總計</td>
+                                    <td class="px-3 py-2" id="footTotalScore">0</td>
+                                    <td class="px-2 py-2 text-center text-red-600" id="footTotalMin">0</td>
+                                    <td class="px-2 py-2 text-center text-green-600" id="footTotalMax">0</td>
+                                    <td class="px-3 py-2 text-center text-base text-blue-700" id="footTotalPoints">0</td>
+                                    <td class="px-3 py-2 text-center">-</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. Radar Chart -->
+                <div class="w-full lg:w-2/5 bg-white rounded-lg shadow-md flex flex-col h-[300px] lg:h-full overflow-hidden">
+                    <div class="px-3 py-2 border-b bg-gray-50 flex-none">
+                        <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                            <span class="bg-blue-100 text-blue-800 text-xs px-1.5 rounded">分析 2</span>
+                            積點分佈
+                        </h2>
+                    </div>
+                    <div class="flex-1 relative p-2 flex justify-center items-center">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section: School List 
+                 Mobile: fixed height or auto (using flex-1 + min-h)
+                 Desktop: fills remaining space
+            -->
+            <div class="flex-1 bg-white rounded-lg shadow-md flex flex-col overflow-hidden min-h-[400px] lg:min-h-[200px]">
+                <div class="px-3 py-2 border-b bg-gray-50 flex justify-between items-center flex-none">
+                    <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                        <span class="bg-green-100 text-green-800 text-xs px-1.5 rounded">分析 3</span>
+                        可能錄取學校預估
+                    </h2>
+                    <div id="rangeInfo" class="text-xs text-yellow-700 bg-yellow-50 px-2 py-1 rounded hidden">
+                        範圍: <span id="rangeLabel" class="font-bold"></span> (落點預估僅供參考)
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2" id="schoolList">
+                        <div class="col-span-full text-center text-gray-400 py-8 text-sm">
+                            尚無資料，請先進行計算
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // ================= DATA SECTION =================
+        const levels = [
+            { label: 'C',   points: 1 },
+            { label: 'B',   points: 2 },
+            { label: 'B+',  points: 3 },
+            { label: 'B++', points: 4 },
+            { label: 'A',   points: 5 },
+            { label: 'A+',  points: 6 },
+            { label: 'A++', points: 7 }
+        ];
+
+        const thresholds = {
+            '111': {
+                'chi': [0, 42.9, 66.7, 76.2, 85.7, 90.5, 95.2],
+                'math': [0, 40.6, 59.4, 67.1, 76.2, 85.7, 93.2],
+                'eng': [0, 38.4, 71.1, 83.2, 90.7, 95.3, 98.1],
+                'soc': [0, 38.9, 64.8, 75.9, 88.9, 94.4, 96.3],
+                'sci': [0, 36, 58, 72, 86, 92, 96]
+            },
+            '112': {
+                'chi': [0, 42.9, 66.7, 76.2, 85.7, 90.5, 95.2],
+                'math': [0, 38.8, 56.9, 66.2, 76.2, 85.7, 91.6],
+                'eng': [0, 38.4, 69, 82.3, 90.7, 96.2, 98.1],
+                'soc': [0, 38.9, 63, 75.9, 87, 92.6, 94.4],
+                'sci': [0, 38, 60, 74, 88, 94, 96]
+            },
+            '113': {
+                'chi': [0, 42.9, 71.4, 78.6, 88.1, 92.9, 95.2],
+                'math': [0, 38.1, 56.9, 67.4, 76.4, 86.4, 93.4],
+                'eng': [0, 38.4, 70, 82.2, 90.7, 96.2, 98.1],
+                'soc': [0, 38.9, 66.7, 77.8, 88.9, 92.6, 96.3],
+                'sci': [0, 38, 60, 74, 88, 94, 96]
+            },
+            '114': { 
+                'chi': [0, 42.9, 66.7, 76.2, 85.7, 90.5, 95.2],
+                'math': [0, 40.6, 59.4, 67.1, 76.2, 85.7, 93.2],
+                'eng': [0, 38.4, 71.1, 83.2, 90.7, 95.3, 98.1],
+                'soc': [0, 38.9, 64.8, 75.9, 88.9, 94.4, 96.3],
+                'sci': [0, 36, 58, 72, 86, 92, 96]
+            },
+            'avg': {
+                'chi': [0, 42.9, 67.88, 76.8, 86.3, 91.1, 95.2],
+                'math': [0, 39.52, 58.15, 66.95, 76.25, 85.88, 92.85],
+                'eng': [0, 38.4, 70.3, 82.72, 90.7, 95.75, 98.1],
+                'soc': [0, 38.9, 64.82, 76.38, 88.43, 93.5, 95.82],
+                'sci': [0, 37, 59, 73, 87, 93, 96]
+            }
+        };
+
+        const schoolsData = [
+            { name: "建國中學", points: 34 }, { name: "北一女中", points: 33 },
+            { name: "師大附中", points: 33 }, { name: "成功高中", points: 32 },
+            { name: "中山女高", points: 31 }, { name: "松山高中", points: 30 },
+            { name: "大同高中", points: 29 }, { name: "中崙高中", points: 28 },
+            { name: "麗山高中", points: 28 }, { name: "板橋高中", points: 27 },
+            { name: "大直高中", points: 26 }, { name: "成淵高中", points: 25 },
+            { name: "和平高中", points: 24 }, { name: "海山高中", points: 24 },
+            { name: "內湖高中", points: 23 }, { name: "西松高中", points: 22 },
+            { name: "中和高中", points: 21 }, { name: "景美女中", points: 20 },
+            { name: "永平高中", points: 19 }, { name: "新莊高中", points: 18 },
+            { name: "新店高中", points: 17 }, { name: "丹鳳高中", points: 16 },
+            { name: "清水高中", points: 15 }, { name: "三民高中", points: 15 },
+            { name: "錦和高中", points: 14 }, { name: "光復高中", points: 14 },
+            { name: "林口高中", points: 14 }, { name: "樹林高中", points: 14 },
+            { name: "松山工農", points: 14 }, { name: "秀峰高中", points: 13 },
+            { name: "復興高中", points: 13 }, { name: "泰山高中", points: 13 },
+            { name: "新北高工", points: 13 }, { name: "三重商工", points: 12 },
+            { name: "石碇高中", points: 12 }, { name: "明德高中", points: 12 },
+            { name: "木柵高工", points: 11 }, { name: "南港高工", points: 11 },
+            { name: "內湖高工", points: 11 }, { name: "基隆商工", points: 10 },
+            { name: "鶯歌工商", points: 10 }, { name: "樟樹高中", points: 10 },
+            { name: "瑞芳高工", points: 9 },  { name: "海大附中", points: 9 },
+            { name: "金山高中", points: 5 },  { name: "雙溪高中", points: 5 },
+            { name: "基隆八斗", points: 5 },  { name: "基隆中山", points: 5 },
+            { name: "基隆暖暖", points: 5 },  { name: "淡水商工", points: 2 }
+        ];
+
+        let radarChartInstance = null;
+
+        function getConversion(score, subjectKey, year) {
+            const thres = thresholds[year][subjectKey];
+            let levelIndex = 0;
+            for (let i = 0; i < thres.length; i++) {
+                if (score >= thres[i]) {
+                    levelIndex = i;
+                } else {
+                    break;
+                }
+            }
+            return {
+                points: levels[levelIndex].points,
+                label: levels[levelIndex].label
+            };
+        }
+
+        function fillExample() {
+            document.getElementById('score_chi').value = 85;
+            document.getElementById('score_math').value = 75;
+            document.getElementById('score_eng').value = 82;
+            document.getElementById('score_soc').value = 80;
+            document.getElementById('score_sci').value = 78;
+        }
+
+        function calculateResults() {
+            const scores = {
+                'chi': parseFloat(document.getElementById('score_chi').value) || 0,
+                'math': parseFloat(document.getElementById('score_math').value) || 0,
+                'eng': parseFloat(document.getElementById('score_eng').value) || 0,
+                'soc': parseFloat(document.getElementById('score_soc').value) || 0,
+                'sci': parseFloat(document.getElementById('score_sci').value) || 0
+            };
+
+            const subjects = [
+                { key: 'chi', name: '國文' },
+                { key: 'math', name: '數學' },
+                { key: 'eng', name: '英語' },
+                { key: 'soc', name: '社會' },
+                { key: 'sci', name: '自然' }
+            ];
+
+            const years = ['111', '112', '113', '114'];
+
+            // Stats across years
+            let stats = {
+                subjects: {},
+                yearlyTotals: []
+            };
+
+            subjects.forEach(sub => stats.subjects[sub.key] = { min: 7, max: 0 });
+
+            years.forEach(year => {
+                let currentYearTotal = 0;
+                subjects.forEach(sub => {
+                    const result = getConversion(scores[sub.key], sub.key, year);
+                    if (result.points < stats.subjects[sub.key].min) stats.subjects[sub.key].min = result.points;
+                    if (result.points > stats.subjects[sub.key].max) stats.subjects[sub.key].max = result.points;
+                    currentYearTotal += result.points;
+                });
+                stats.yearlyTotals.push(currentYearTotal);
+            });
+
+            const minYearlyTotal = Math.min(...stats.yearlyTotals);
+            const maxYearlyTotal = Math.max(...stats.yearlyTotals);
+            const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+
+            document.getElementById('yearStatsBox').classList.remove('hidden');
+            document.getElementById('totalScoreRaw').innerText = totalScore.toFixed(1);
+            document.getElementById('minYearlyPoints').innerText = minYearlyTotal;
+            document.getElementById('maxYearlyPoints').innerText = maxYearlyTotal;
+
+            // Average Data Table
+            let avgTotalPoints = 0;
+            let totalMinPoints = 0; 
+            let totalMaxPoints = 0;
+
+            const tableBody = document.getElementById('resultTableBody');
+            tableBody.innerHTML = '';
+            
+            let chartData = [];
+
+            subjects.forEach(sub => {
+                const avgResult = getConversion(scores[sub.key], sub.key, 'avg');
+                avgTotalPoints += avgResult.points;
+                
+                totalMinPoints += stats.subjects[sub.key].min;
+                totalMaxPoints += stats.subjects[sub.key].max;
+
+                chartData.push(avgResult.points);
+
+                const row = `
+                    <tr class="bg-white border-b hover:bg-gray-50 last:border-b-0">
+                        <td class="px-3 py-1.5 font-medium text-gray-900">${sub.name}</td>
+                        <td class="px-3 py-1.5 text-gray-600">${scores[sub.key]}</td>
+                        <td class="px-2 py-1.5 text-center text-gray-400 text-xs">${stats.subjects[sub.key].min}</td>
+                        <td class="px-2 py-1.5 text-center text-gray-400 text-xs">${stats.subjects[sub.key].max}</td>
+                        <td class="px-3 py-1.5 text-center font-bold text-blue-600 bg-blue-50/50">${avgResult.points}</td>
+                        <td class="px-3 py-1.5 text-center text-gray-700 bg-gray-50/50">${avgResult.label}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+            document.getElementById('tableFooter').classList.remove('hidden');
+            document.getElementById('footTotalScore').innerText = totalScore.toFixed(1);
+            document.getElementById('footTotalMin').innerText = totalMinPoints;
+            document.getElementById('footTotalMax').innerText = totalMaxPoints;
+            document.getElementById('footTotalPoints').innerText = avgTotalPoints;
+
+            updateRadarChart(subjects.map(s => s.name), chartData);
+            updateSchoolList(avgTotalPoints);
+        }
+
+        function updateRadarChart(labels, data) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            if (radarChartInstance) {
+                radarChartInstance.destroy();
+            }
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '積點',
+                        data: data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: true, color: '#e5e7eb' },
+                            grid: { color: '#f3f4f6' },
+                            suggestedMin: 0,
+                            suggestedMax: 7,
+                            ticks: { stepSize: 1, display: false } // Hide chart ticks for cleaner look in small space
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false } // Hide legend to save space
+                    }
+                }
+            });
+        }
+
+        function updateSchoolList(totalPoints) {
+            const container = document.getElementById('schoolList');
+            const rangeMin = totalPoints - 2;
+            const rangeMax = totalPoints + 2;
+            
+            document.getElementById('rangeInfo').classList.remove('hidden');
+            document.getElementById('rangeLabel').innerText = `${rangeMin} ~ ${rangeMax}`;
+
+            const matchedSchools = schoolsData.filter(school => 
+                school.points >= rangeMin && school.points <= rangeMax
+            );
+            
+            matchedSchools.sort((a, b) => b.points - a.points);
+
+            container.innerHTML = '';
+
+            if (matchedSchools.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center text-gray-500 py-4 bg-gray-50 rounded text-sm">此區間無符合的預估學校資料</div>`;
+                return;
+            }
+
+            matchedSchools.forEach(school => {
+                let badgeClass = "bg-gray-100 text-gray-600";
+                let statusText = "落點";
+                let borderClass = "border-gray-200";
+                
+                if (school.points > totalPoints) {
+                    badgeClass = "bg-orange-100 text-orange-700";
+                    statusText = "夢幻";
+                    borderClass = "border-orange-200";
+                } else if (school.points < totalPoints) {
+                    badgeClass = "bg-green-100 text-green-700";
+                    statusText = "安全";
+                    borderClass = "border-green-200";
+                }
+
+                const card = `
+                    <div class="flex items-center justify-between p-2 bg-white border ${borderClass} rounded shadow-sm hover:shadow-md transition">
+                        <span class="font-medium text-gray-800 text-sm truncate" title="${school.name}">${school.name}</span>
+                        <div class="flex items-center gap-1 flex-none">
+                            <span class="text-xs font-bold text-blue-600">${school.points}</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded ${badgeClass}">${statusText}</span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+    </script>
+</body>
+</html>
