@@ -1,0 +1,192 @@
+import React, { useState } from 'react';
+import { Info, AlertTriangle, CheckCircle2, Ruler, ArrowRightLeft, ShieldCheck } from 'lucide-react';
+
+const App = () => {
+  const [activeView, setActiveView] = useState('standard');
+
+  const data = {
+    standard: {
+      title: "方案 A：獨立雙植體 (二植二冠)",
+      desc: "模擬天然牙根配置，是目前臨床公認最穩定的做法。",
+      specs: [
+        { label: "植體直徑 ($D$)", value: "3.5mm - 4.5mm" },
+        { label: "植體長度 ($L$)", value: "10mm - 12mm" },
+        { label: "植體間距", value: "3.0mm (關鍵數據)" },
+        { label: "鄰牙間距", value: "≥ 1.5mm" }
+      ],
+      pros: ["力學分佈均勻", "方便使用牙線清潔", "牙齦乳頭維持度佳"],
+      cons: ["手術費用較高", "需較多骨量空間"],
+      risk: "低",
+      color: "blue"
+    },
+    single: {
+      title: "方案 B：單一植體 (大牙冠/懸臂)",
+      desc: "利用一顆植體支撐兩顆牙齒寬度的假牙，風險較高。",
+      specs: [
+        { label: "植體直徑 ($D$)", value: "4.5mm - 5.0mm (需廣徑)", color: "text-red-500" },
+        { label: "植體長度 ($L$)", value: "> 12mm (需長度)", color: "text-red-500" },
+        { label: "植體間距", value: "無 (單根承載)" },
+        { label: "鄰牙間距", value: "≥ 1.5mm" }
+      ],
+      pros: ["手術次數少", "總費用相對低"],
+      cons: ["產生強大力矩 ($M=F \times d$)", "零件易鬆動/斷裂", "容易塞牙縫"],
+      risk: "高",
+      color: "amber"
+    }
+  };
+
+  const current = data[activeView];
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-800">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <header className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">小臼齒植牙重建：方案技術對比</h1>
+          <p className="text-slate-600 italic">第一小臼齒 (#14/24) 與 第二小臼齒 (#15/25) 缺失分析</p>
+        </header>
+
+        {/* Toggle Switch */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white p-1 rounded-xl shadow-sm border border-slate-200 flex gap-1">
+            <button 
+              onClick={() => setActiveView('standard')}
+              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeView === 'standard' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'}`}
+            >
+              獨立雙植體 (推薦)
+            </button>
+            <button 
+              onClick={() => setActiveView('single')}
+              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeView === 'single' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'}`}
+            >
+              單一植體 (高風險)
+            </button>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 items-start">
+          {/* Left Side: Visual & Specs */}
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+              <div className="flex items-center gap-2 mb-4 text-lg font-bold">
+                <Ruler className="text-blue-500" />
+                <h2>技術規格參數</h2>
+              </div>
+              <div className="space-y-4">
+                {current.specs.map((spec, i) => (
+                  <div key={i} className="flex justify-between items-center pb-2 border-b border-slate-100">
+                    <span className="text-slate-600">{spec.label}</span>
+                    <span className={`font-mono font-bold ${spec.color || 'text-slate-900'}`}>{spec.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Mini Visual Diagram */}
+              <div className="mt-8 bg-slate-50 rounded-xl p-4 border border-dashed border-slate-300">
+                <h3 className="text-xs font-bold text-slate-400 uppercase mb-4 text-center">間距模擬示意圖</h3>
+                <div className="flex justify-center items-end h-32 gap-4">
+                  {activeView === 'standard' ? (
+                    <>
+                      <div className="w-8 h-20 bg-slate-300 rounded-t-lg relative">
+                        <div className="absolute -top-6 left-0 right-0 text-[10px] text-center">#14</div>
+                      </div>
+                      <div className="w-1 h-12 bg-red-400 flex items-center justify-center relative">
+                        <span className="absolute text-[10px] whitespace-nowrap -bottom-6 text-red-600">3mm 骨橋</span>
+                      </div>
+                      <div className="w-8 h-20 bg-slate-300 rounded-t-lg relative">
+                        <div className="absolute -top-6 left-0 right-0 text-[10px] text-center">#15</div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="w-10 h-24 bg-slate-400 rounded-t-lg relative flex items-center justify-center">
+                      <div className="absolute -top-6 left-0 right-0 text-[10px] text-center">單根植體</div>
+                      <div className="w-24 h-8 bg-amber-500 absolute -top-14 rounded-md flex items-center justify-center text-white text-[10px] font-bold">
+                        過大牙冠 (14mm+)
+                      </div>
+                      <div className="absolute top-2 animate-bounce">
+                        <AlertTriangle size={16} className="text-white" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+              <div className="flex items-center gap-2 mb-4 text-lg font-bold">
+                <ShieldCheck className="text-green-500" />
+                <h2>力學風險評估</h2>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex-1 bg-slate-100 rounded-full h-4 overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-1000 ${current.risk === '低' ? 'w-[20%] bg-green-500' : 'w-[85%] bg-red-500'}`}
+                  ></div>
+                </div>
+                <span className="font-bold text-sm">風險度: {current.risk}</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                {activeView === 'single' ? "※ 此設計會產生嚴重的槓桿力矩，容易造成基台螺絲疲勞與骨質吸收。" : "※ 符合生理結構，應力能垂直傳導至骨組織。"}
+              </p>
+            </div>
+          </div>
+
+          {/* Right Side: Comparisons */}
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 h-full">
+            <h2 className="text-xl font-bold mb-4">{current.title}</h2>
+            <p className="text-slate-600 mb-6 leading-relaxed">{current.desc}</p>
+            
+            <div className="space-y-8">
+              <div>
+                <h3 className="flex items-center gap-2 text-green-700 font-bold mb-3">
+                  <CheckCircle2 size={20} /> 優點
+                </h3>
+                <ul className="space-y-2">
+                  {current.pros.map((pro, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <div className="mt-1 w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                      {pro}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="flex items-center gap-2 text-red-700 font-bold mb-3">
+                  <AlertTriangle size={20} /> 缺點與風險
+                </h3>
+                <ul className="space-y-2">
+                  {current.cons.map((con, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <div className="mt-1 w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                      {con}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="pt-6 border-t border-slate-100">
+                <div className="bg-slate-50 p-4 rounded-xl">
+                  <h4 className="font-bold text-sm mb-2 text-slate-700">臨床專家建議：</h4>
+                  <p className="text-sm leading-relaxed text-slate-600">
+                    {activeView === 'standard' 
+                      ? "若齒槽骨寬度與高度足夠，應優先考慮此方案。長遠來看，這能節省後續維修的潛在費用。" 
+                      : "僅限於極度特殊情況（如嚴重骨缺損且無法補骨）。務必確認咬合力極輕，並定期回診檢查螺絲穩定度。"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Note */}
+        <footer className="mt-12 text-center text-slate-400 text-sm pb-8">
+          數據參考自 ITI (International Team for Implantology) 臨床指引 <br />
+          實際治療方案請以門診醫師之臨床評估與 CT 電腦斷層掃描為準。
+        </footer>
+      </div>
+    </div>
+  );
+};
+
+export default App;
