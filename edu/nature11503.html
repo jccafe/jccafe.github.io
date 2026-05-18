@@ -1,300 +1,322 @@
-import React, { useState, useMemo } from 'react';
-import { BookOpen, Target, AlertTriangle, CheckCircle, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>115會考自然科線上複習系統</title>
+    
+    <!-- 載入 Tailwind CSS 進行美化 -->
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    
+    <!-- 載入 FontAwesome 圖示庫 -->
+    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+    
+    <!-- 載入 React 與 Babel (確保在瀏覽器端直接運行) -->
+    <script src="[https://unpkg.com/react@18/umd/react.production.min.js](https://unpkg.com/react@18/umd/react.production.min.js)" crossorigin></script>
+    <script src="[https://unpkg.com/react-dom@18/umd/react-dom.production.min.js](https://unpkg.com/react-dom@18/umd/react-dom.production.min.js)" crossorigin></script>
+    <script src="[https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js)"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+    
+    <!-- React 應用程式掛載點 -->
+    <div id="root"></div>
 
-// --- 模擬題庫資料庫 (JSON Schema) ---
-const questionsDatabase = [
-  {
-    question_id: "Q1",
-    subject: "生物",
-    volume_chapter: "第一冊-細胞的構造與功能",
-    concept: "植物細胞與動物細胞的差異",
-    learning_performance: "INb-IV-2 細胞的構造與功能",
-    question_type: "單一知識題",
-    difficulty: "基礎",
-    content: "小明在顯微鏡下觀察某種細胞，發現該細胞具有細胞壁、葉綠體以及大型液泡。請問此細胞最可能取自下列何者？",
-    image_url: "",
-    options: ["(A) 人的口腔皮膜", "(B) 榕樹的葉肉", "(C) 貓的肌肉", "(D) 台灣獼猴的血液"],
-    answer: "(B)",
-    explanation: "細胞壁、葉綠體與大型液泡為植物細胞的典型特徵。選項中僅有榕樹（B）為植物。",
-    misconception: "學生可能混淆動植物細胞的共同特徵（如細胞膜、細胞質、細胞核）與植物獨有特徵。"
-  },
-  {
-    question_id: "Q46",
-    subject: "理化-物理",
-    volume_chapter: "第五冊-力與運動",
-    concept: "自由落體運動、控制變因",
-    learning_performance: "pe-IV-1 能理解科學探究過程並設計簡單實驗",
-    question_type: "實驗探究題",
-    difficulty: "中等",
-    content: "科學家想要觀察水滴以不同的速度，衝擊石英板時的變化情形，若不考慮空氣阻力，則他調整下列哪一項實驗條件最合理？",
-    image_url: "圖(三十)實驗裝置與圖(三十一)數據圖",
-    options: [
-      "(A) 調整水滴的溫度，以改變水滴的密度",
-      "(B) 調整針頭的孔徑，以改變水滴的直徑與重量",
-      "(C) 調整針頭的高度，以改變水滴落下的垂直距離",
-      "(D) 調整攝影機的設定，以改變攝影機每秒拍攝畫面的張數"
-    ],
-    answer: "(C)",
-    explanation: "依據自由落體公式，物體落下的終端速度僅與「重力加速度」及「落下的垂直距離（高度）」有關。因此要改變水滴衝擊時的速度，最合理的方法是改變針頭高度。",
-    misconception: "日常經驗會直覺認為「越重的東西掉下來越快」，但忽略在不考慮空氣阻力的情況下，重力加速度對所有質量的物體皆相同，質量大小不影響落地速度。"
-  },
-  {
-    question_id: "Q47",
-    subject: "理化-物理",
-    volume_chapter: "第五冊-力與運動",
-    concept: "作用力與反作用力",
-    learning_performance: "INc-IV-3 牛頓第三運動定律",
-    question_type: "圖表分析題",
-    difficulty: "進階",
-    content: "根據本文，已知石英板作用在水滴的力為F'，F'即F的反作用力，則圖(三十一)中呈現的四個狀態，哪一個狀態下F'的大小最大？",
-    image_url: "圖(三十一)數據圖的四個狀態",
-    options: [
-      "(A) 狀態一", 
-      "(B) 狀態二", 
-      "(C) 狀態三", 
-      "(D) 狀態四"
-    ],
-    answer: "(C)",
-    explanation: "根據牛頓第三運動定律，作用力與反作用力大小相等、方向相反（F = -F'）。因此要尋找 F' 最大的狀態，即是從圖表中尋找縱坐標 F(N) 數值最大（波峰）的時刻。",
-    misconception: "容易無法將文字敘述的「反作用力」與圖表中的「作用力 F」建立大小相等的連結，或是看不懂數據圖中縱坐標代表的意義。"
-  }
-];
+    <!-- 系統核心邏輯 -->
+    <script type="text/babel">
+        const { useState, useMemo } = React;
 
-export default function App() {
-  const [activeStage, setActiveStage] = useState(0); 
-  const [filters, setFilters] = useState({ subject: '', difficulty: '', type: '' });
-  const [expandedCards, setExpandedCards] = useState({});
+        // --- 模擬題庫資料庫 (JSON Schema) ---
+        const questionsDatabase = [
+            {
+                question_id: "Q1",
+                subject: "生物",
+                volume_chapter: "第一冊-細胞的構造與功能",
+                concept: "植物細胞與動物細胞的差異",
+                learning_performance: "INb-IV-2 細胞的構造與功能",
+                question_type: "單一知識題",
+                difficulty: "基礎",
+                content: "小明在顯微鏡下觀察某種細胞，發現該細胞具有細胞壁、葉綠體以及大型液泡。請問此細胞最可能取自下列何者？",
+                image_url: "",
+                options: ["(A) 人的口腔皮膜", "(B) 榕樹的葉肉", "(C) 貓的肌肉", "(D) 台灣獼猴的血液"],
+                answer: "(B)",
+                explanation: "細胞壁、葉綠體與大型液泡為植物細胞的典型特徵。選項中僅有榕樹（B）為植物。",
+                misconception: "學生可能混淆動植物細胞的共同特徵（如細胞膜、細胞質、細胞核）與植物獨有特徵。"
+            },
+            {
+                question_id: "Q46",
+                subject: "理化-物理",
+                volume_chapter: "第五冊-力與運動",
+                concept: "自由落體運動、控制變因",
+                learning_performance: "pe-IV-1 能理解科學探究過程並設計簡單實驗",
+                question_type: "實驗探究題",
+                difficulty: "中等",
+                content: "科學家想要觀察水滴以不同的速度，衝擊石英板時的變化情形，若不考慮空氣阻力，則他調整下列哪一項實驗條件最合理？",
+                image_url: "圖(三十)實驗裝置與圖(三十一)數據圖",
+                options: [
+                    "(A) 調整水滴的溫度，以改變水滴的密度",
+                    "(B) 調整針頭的孔徑，以改變水滴的直徑與重量",
+                    "(C) 調整針頭的高度，以改變水滴落下的垂直距離",
+                    "(D) 調整攝影機的設定，以改變攝影機每秒拍攝畫面的張數"
+                ],
+                answer: "(C)",
+                explanation: "依據自由落體公式，物體落下的終端速度僅與「重力加速度」及「落下的垂直距離（高度）」有關。因此要改變水滴衝擊時的速度，最合理的方法是改變針頭高度。",
+                misconception: "日常經驗會直覺認為「越重的東西掉下來越快」，但忽略在不考慮空氣阻力的情況下，重力加速度對所有質量的物體皆相同，質量大小不影響落地速度。"
+            },
+            {
+                question_id: "Q47",
+                subject: "理化-物理",
+                volume_chapter: "第五冊-力與運動",
+                concept: "作用力與反作用力",
+                learning_performance: "INc-IV-3 牛頓第三運動定律",
+                question_type: "圖表分析題",
+                difficulty: "進階",
+                content: "根據本文，已知石英板作用在水滴的力為F'，F'即F的反作用力，則圖(三十一)中呈現的四個狀態，哪一個狀態下F'的大小最大？",
+                image_url: "圖(三十一)數據圖的四個狀態",
+                options: [
+                    "(A) 狀態一", 
+                    "(B) 狀態二", 
+                    "(C) 狀態三", 
+                    "(D) 狀態四"
+                ],
+                answer: "(C)",
+                explanation: "根據牛頓第三運動定律，作用力與反作用力大小相等、方向相反（F = -F'）。因此要尋找 F' 最大的狀態，即是從圖表中尋找縱坐標 F(N) 數值最大（波峰）的時刻。",
+                misconception: "容易無法將文字敘述的「反作用力」與圖表中的「作用力 F」建立大小相等的連結，或是看不懂數據圖中縱坐標代表的意義。"
+            }
+        ];
 
-  // 處理階段按鈕點擊
-  const handleStageClick = (stageNum) => {
-    setActiveStage(stageNum);
-    switch(stageNum) {
-      case 1:
-        setFilters({ subject: '', difficulty: '基礎', type: '單一知識題' });
-        break;
-      case 2:
-        setFilters({ subject: '', difficulty: '', type: '實驗探究題' }); 
-        break;
-      case 3:
-        setFilters({ subject: '', difficulty: '中等', type: '' }); 
-        break;
-      case 4:
-        setFilters({ subject: '', difficulty: '進階', type: '' });
-        break;
-      default:
-        setFilters({ subject: '', difficulty: '', type: '' });
-    }
-  };
+        function App() {
+            const [activeStage, setActiveStage] = useState(0); 
+            const [filters, setFilters] = useState({ subject: '', difficulty: '', type: '' });
+            const [expandedCards, setExpandedCards] = useState({});
 
-  const handleFilterChange = (key, value) => {
-    setActiveStage(0); 
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
+            const handleStageClick = (stageNum) => {
+                setActiveStage(stageNum);
+                switch(stageNum) {
+                    case 1:
+                        setFilters({ subject: '', difficulty: '基礎', type: '單一知識題' });
+                        break;
+                    case 2:
+                        setFilters({ subject: '', difficulty: '', type: '實驗探究題' }); 
+                        break;
+                    case 3:
+                        setFilters({ subject: '', difficulty: '中等', type: '' }); 
+                        break;
+                    case 4:
+                        setFilters({ subject: '', difficulty: '進階', type: '' });
+                        break;
+                    default:
+                        setFilters({ subject: '', difficulty: '', type: '' });
+                }
+            };
 
-  const toggleExplanation = (id) => {
-    setExpandedCards(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
+            const handleFilterChange = (key, value) => {
+                setActiveStage(0); 
+                setFilters(prev => ({ ...prev, [key]: value }));
+            };
 
-  // 根據條件過濾題目
-  const filteredQuestions = useMemo(() => {
-    return questionsDatabase.filter(q => {
-      const matchSubject = filters.subject ? q.subject.includes(filters.subject) : true;
-      const matchDifficulty = filters.difficulty ? q.difficulty === filters.difficulty : true;
-      const matchType = filters.type 
-        ? (activeStage === 2 ? (q.question_type === '實驗探究題' || q.question_type === '圖表分析題') : q.question_type === filters.type) 
-        : true;
-      return matchSubject && matchDifficulty && matchType;
-    });
-  }, [filters, activeStage]);
+            const toggleExplanation = (id) => {
+                setExpandedCards(prev => ({
+                    ...prev,
+                    [id]: !prev[id]
+                }));
+            };
 
-  return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-4 md:p-8">
-      
-      {/* 標題區塊 */}
-      <header className="max-w-5xl mx-auto mb-8 text-center md:text-left flex flex-col md:flex-row items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-indigo-700 flex items-center gap-2 justify-center md:justify-start">
-            <Lightbulb className="w-8 h-8 text-amber-500" />
-            115會考自然科 線上複習系統
-          </h1>
-          <p className="text-slate-500 mt-2">結合 108 課綱與精準篩選的數位化題庫</p>
-        </div>
-      </header>
+            const filteredQuestions = useMemo(() => {
+                return questionsDatabase.filter(q => {
+                    const matchSubject = filters.subject ? q.subject.includes(filters.subject) : true;
+                    const matchDifficulty = filters.difficulty ? q.difficulty === filters.difficulty : true;
+                    const matchType = filters.type 
+                        ? (activeStage === 2 ? (q.question_type === '實驗探究題' || q.question_type === '圖表分析題') : q.question_type === filters.type) 
+                        : true;
+                    return matchSubject && matchDifficulty && matchType;
+                });
+            }, [filters, activeStage]);
 
-      <main className="max-w-5xl mx-auto space-y-6">
-        
-        {/* 階段進度導航模組 */}
-        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
-          <h2 className="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2">
-            <Target className="w-5 h-5 text-indigo-500" />
-            系統建議複習進度 (點擊套用策略)
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            {[
-              { id: 1, title: '階段一：基礎檢視', desc: '基礎難度/單一知識題' },
-              { id: 2, title: '階段二：素養特訓', desc: '圖表分析/實驗探究題' },
-              { id: 3, title: '階段三：弱點突破', desc: '中等難度/易錯概念' },
-              { id: 4, title: '階段四：進階挑戰', desc: '進階難度/跨科題組' }
-            ].map(stage => (
-              <button
-                key={stage.id}
-                onClick={() => handleStageClick(stage.id)}
-                className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 ${
-                  activeStage === stage.id 
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700' 
-                    : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-indigo-300 hover:bg-white'
-                }`}
-              >
-                <span className="font-bold">{stage.title}</span>
-                <span className="text-xs mt-1 opacity-80">{stage.desc}</span>
-              </button>
-            ))}
-          </div>
-        </section>
+            return (
+                <div className="p-4 md:p-8">
+                    
+                    <header className="max-w-5xl mx-auto mb-8 text-center md:text-left flex flex-col md:flex-row items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-indigo-700 flex items-center gap-3 justify-center md:justify-start">
+                                <i className="fa-solid fa-lightbulb text-amber-500 text-3xl"></i>
+                                115會考自然科 線上複習系統
+                            </h1>
+                            <p className="text-slate-500 mt-2 ml-1">結合 108 課綱與精準篩選的數位化題庫 (獨立 HTML 版)</p>
+                        </div>
+                    </header>
 
-        {/* 自訂篩選列 */}
-        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-wrap gap-4 items-center">
-          <div className="flex items-center gap-2 text-slate-700 font-medium">
-            <span className="font-bold text-indigo-500 mr-1">篩選器：</span>
-          </div>
-          
-          <select 
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-            value={filters.subject}
-            onChange={(e) => handleFilterChange('subject', e.target.value)}
-          >
-            <option value="">所有科目</option>
-            <option value="生物">生物</option>
-            <option value="理化-物理">理化-物理</option>
-            <option value="理化-化學">理化-化學</option>
-            <option value="地球科學">地球科學</option>
-          </select>
+                    <main className="max-w-5xl mx-auto space-y-6">
+                        
+                        {/* 階段進度導航模組 */}
+                        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                            <h2 className="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                                <i className="fa-solid fa-bullseye text-indigo-500"></i>
+                                系統建議複習進度 (點擊套用策略)
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                {[
+                                    { id: 1, title: '階段一：基礎檢視', desc: '基礎難度/單一知識題' },
+                                    { id: 2, title: '階段二：素養特訓', desc: '圖表分析/實驗探究題' },
+                                    { id: 3, title: '階段三：弱點突破', desc: '中等難度/易錯概念' },
+                                    { id: 4, title: '階段四：進階挑戰', desc: '進階難度/跨科題組' }
+                                ].map(stage => (
+                                    <button
+                                        key={stage.id}
+                                        onClick={() => handleStageClick(stage.id)}
+                                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 ${
+                                            activeStage === stage.id 
+                                                ? 'border-indigo-500 bg-indigo-50 text-indigo-700' 
+                                                : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-indigo-300 hover:bg-white'
+                                        }`}
+                                    >
+                                        <span className="font-bold">{stage.title}</span>
+                                        <span className="text-xs mt-1 opacity-80">{stage.desc}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
 
-          <select 
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-            value={filters.difficulty}
-            onChange={(e) => handleFilterChange('difficulty', e.target.value)}
-          >
-            <option value="">所有難度</option>
-            <option value="基礎">基礎</option>
-            <option value="中等">中等</option>
-            <option value="進階">進階</option>
-          </select>
+                        {/* 自訂篩選列 */}
+                        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-wrap gap-4 items-center">
+                            <div className="flex items-center gap-2 text-slate-700 font-medium">
+                                <i className="fa-solid fa-filter text-indigo-500 mr-1"></i>
+                                <span className="font-bold text-slate-700">自訂篩選：</span>
+                            </div>
+                            
+                            <select 
+                                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                                value={filters.subject}
+                                onChange={(e) => handleFilterChange('subject', e.target.value)}
+                            >
+                                <option value="">所有科目</option>
+                                <option value="生物">生物</option>
+                                <option value="理化-物理">理化-物理</option>
+                                <option value="理化-化學">理化-化學</option>
+                                <option value="地球科學">地球科學</option>
+                            </select>
 
-          <select 
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
-            value={filters.type}
-            onChange={(e) => handleFilterChange('type', e.target.value)}
-          >
-            <option value="">所有題型</option>
-            <option value="單一知識題">單一知識題</option>
-            <option value="圖表分析題">圖表分析題</option>
-            <option value="實驗探究題">實驗探究題</option>
-          </select>
+                            <select 
+                                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                                value={filters.difficulty}
+                                onChange={(e) => handleFilterChange('difficulty', e.target.value)}
+                            >
+                                <option value="">所有難度</option>
+                                <option value="基礎">基礎</option>
+                                <option value="中等">中等</option>
+                                <option value="進階">進階</option>
+                            </select>
 
-          <button 
-            onClick={() => {setActiveStage(0); setFilters({subject:'', difficulty:'', type:''});}}
-            className="text-sm text-indigo-600 hover:text-indigo-800 underline ml-auto md:ml-0"
-          >
-            清除條件
-          </button>
-        </section>
+                            <select 
+                                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                                value={filters.type}
+                                onChange={(e) => handleFilterChange('type', e.target.value)}
+                            >
+                                <option value="">所有題型</option>
+                                <option value="單一知識題">單一知識題</option>
+                                <option value="圖表分析題">圖表分析題</option>
+                                <option value="實驗探究題">實驗探究題</option>
+                            </select>
 
-        {/* 題庫展示區 */}
-        <section className="space-y-6 pb-12">
-          {filteredQuestions.length === 0 ? (
-            <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300">
-              <p>目前條件下沒有找到題目，請嘗試調整篩選條件。</p>
-            </div>
-          ) : (
-            filteredQuestions.map((q) => (
-              <div key={q.question_id} className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-                {/* 題目頭部標籤 */}
-                <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex flex-wrap gap-2 items-center">
-                  <span className="font-bold text-slate-700 mr-2">題號：{q.question_id}</span>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-md">{q.subject}</span>
-                  <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-md">{q.volume_chapter}</span>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-md ${
-                    q.difficulty === '基礎' ? 'bg-green-100 text-green-700' :
-                    q.difficulty === '中等' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                  }`}>
-                    難度：{q.difficulty}
-                  </span>
-                  <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-md">{q.question_type}</span>
+                            <button 
+                                onClick={() => {setActiveStage(0); setFilters({subject:'', difficulty:'', type:''});}}
+                                className="text-sm text-indigo-600 hover:text-indigo-800 underline ml-auto md:ml-0"
+                            >
+                                清除條件
+                            </button>
+                        </section>
+
+                        {/* 題庫展示區 */}
+                        <section className="space-y-6 pb-12">
+                            {filteredQuestions.length === 0 ? (
+                                <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300">
+                                    <p>目前條件下沒有找到題目，請嘗試調整篩選條件。</p>
+                                </div>
+                            ) : (
+                                filteredQuestions.map((q) => (
+                                    <div key={q.question_id} className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                                        <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex flex-wrap gap-2 items-center">
+                                            <span className="font-bold text-slate-700 mr-2">題號：{q.question_id}</span>
+                                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-md">{q.subject}</span>
+                                            <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-md">{q.volume_chapter}</span>
+                                            <span className={`px-2 py-1 text-xs font-semibold rounded-md ${
+                                                q.difficulty === '基礎' ? 'bg-green-100 text-green-700' :
+                                                q.difficulty === '中等' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                                            }`}>
+                                                難度：{q.difficulty}
+                                            </span>
+                                            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-md">{q.question_type}</span>
+                                        </div>
+
+                                        <div className="p-6">
+                                            <p className="text-lg leading-relaxed mb-4 text-slate-800 font-medium">
+                                                {q.content}
+                                            </p>
+                                            
+                                            {q.image_url && (
+                                                <div className="mb-4 inline-block px-4 py-2 bg-slate-100 border border-slate-300 rounded text-sm text-slate-600">
+                                                    <i className="fa-regular fa-image mr-1"></i> [圖形參照：{q.image_url}]
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-2 mb-6">
+                                                {q.options.map((opt, i) => (
+                                                    <div key={i} className="p-3 rounded-lg border border-slate-100 bg-slate-50 hover:bg-indigo-50 transition-colors cursor-pointer">
+                                                        {opt}
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <button 
+                                                onClick={() => toggleExplanation(q.question_id)}
+                                                className="flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-800 transition-colors"
+                                            >
+                                                <i className={`fa-solid ${expandedCards[q.question_id] ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+                                                {expandedCards[q.question_id] ? "收起解析" : "觀看解析與易錯概念"}
+                                            </button>
+
+                                            {expandedCards[q.question_id] && (
+                                                <div className="mt-6 p-5 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-4">
+                                                    <div className="flex gap-3">
+                                                        <i className="fa-solid fa-circle-check text-emerald-500 text-2xl shrink-0 mt-1"></i>
+                                                        <div>
+                                                            <h4 className="font-bold text-slate-700">正確解答：<span className="text-emerald-600 text-lg">{q.answer}</span></h4>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-3">
+                                                        <i className="fa-solid fa-book-open text-indigo-500 text-2xl shrink-0 mt-1"></i>
+                                                        <div>
+                                                            <h4 className="font-bold text-slate-700 mb-1">名師詳解</h4>
+                                                            <p className="text-slate-600 leading-relaxed">{q.explanation}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-3">
+                                                        <i className="fa-solid fa-triangle-exclamation text-amber-500 text-2xl shrink-0 mt-1"></i>
+                                                        <div>
+                                                            <h4 className="font-bold text-slate-700 mb-1">易錯與迷思概念</h4>
+                                                            <p className="text-slate-600 leading-relaxed">{q.misconception}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="mt-4 pt-4 border-t border-indigo-200/60 text-sm text-indigo-800/70 flex gap-2">
+                                                        <span className="font-bold">對應學習表現：</span> {q.learning_performance}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </section>
+                    </main>
                 </div>
+            );
+        }
 
-                {/* 題目主體 */}
-                <div className="p-6">
-                  <p className="text-lg leading-relaxed mb-4 text-slate-800 font-medium">
-                    {q.content}
-                  </p>
-                  
-                  {q.image_url && (
-                    <div className="mb-4 inline-block px-4 py-2 bg-slate-100 border border-slate-300 rounded text-sm text-slate-600">
-                      [圖形參照：{q.image_url}]
-                    </div>
-                  )}
-
-                  <div className="space-y-2 mb-6">
-                    {q.options.map((opt, i) => (
-                      <div key={i} className="p-3 rounded-lg border border-slate-100 bg-slate-50 hover:bg-indigo-50 transition-colors cursor-pointer">
-                        {opt}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* 展開詳解按鈕 */}
-                  <button 
-                    onClick={() => toggleExplanation(q.question_id)}
-                    className="flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-800 transition-colors"
-                  >
-                    {expandedCards[q.question_id] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                    {expandedCards[q.question_id] ? "收起解析" : "觀看解析與易錯概念"}
-                  </button>
-
-                  {/* 詳解區塊 */}
-                  {expandedCards[q.question_id] && (
-                    <div className="mt-6 p-5 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-4 animate-in fade-in slide-in-from-top-2">
-                      
-                      <div className="flex gap-3">
-                        <CheckCircle className="w-6 h-6 text-emerald-500 shrink-0" />
-                        <div>
-                          <h4 className="font-bold text-slate-700">正確解答：<span className="text-emerald-600 text-lg">{q.answer}</span></h4>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <BookOpen className="w-6 h-6 text-indigo-500 shrink-0" />
-                        <div>
-                          <h4 className="font-bold text-slate-700 mb-1">名師詳解</h4>
-                          <p className="text-slate-600 leading-relaxed">{q.explanation}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <AlertTriangle className="w-6 h-6 text-amber-500 shrink-0" />
-                        <div>
-                          <h4 className="font-bold text-slate-700 mb-1">易錯與迷思概念</h4>
-                          <p className="text-slate-600 leading-relaxed">{q.misconception}</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 pt-4 border-t border-indigo-200/60 text-sm text-indigo-800/70 flex gap-2">
-                        <span className="font-bold">對應學習表現：</span> {q.learning_performance}
-                      </div>
-
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </section>
-
-      </main>
-    </div>
-  );
-}
+        // 將 React 應用程式掛載到 root 節點
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
