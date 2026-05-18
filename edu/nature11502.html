@@ -60,9 +60,9 @@
             background: #94a3b8;
         }
         .active-card {
-            border-color: #0284c7;
-            background-color: #f0f7ff;
-            box-shadow: 0 4px 12px -2px rgba(2, 132, 199, 0.12);
+            border-color: #0284c7 !important;
+            background-color: #f0f7ff !important;
+            box-shadow: 0 4px 12px -2px rgba(2, 132, 199, 0.12) !important;
         }
     </style>
 </head>
@@ -489,7 +489,7 @@
             { id: "115_N_06", number: 6, subject: "理化-物理", book: 3, chapter: "光、聲音與溫度", concept: "光的反射與折射定律", curriculumCode: "po-Ⅳ-1", curriculumDesc: "能從偏折圖中發現折射角與入射角、介質密度的關聯性。", type: "圖表判讀", difficulty: "易", brief: "一束光線由空氣（快介質）斜射入水中（慢介質），其光線偏折的路徑符合下列何者？", detailedExplanation: "光從傳播速度快的介質斜射入速度慢的介質時（如空氣到水），光線會向法線偏折，此時入射角大於折射角（折射線偏向法線）。反之，由慢介質到快介質則偏離法線，折射角大於入射角。", commonMisconception: "計算角度時，常將「折射角」或「入射角」誤算為「光線與介質界面的夾角」。記住：入射角、反射角與折射角，一律是「光線與法線」的夾角！", quiz: { text: "當光從水（慢）垂直射入空氣（快）時，偏折角度與折射角為：", options: [{ text: "不偏折，入射角與折射角皆為0度", isCorrect: true, desc: "正確！垂直入射（入射角=0）不偏折，角度均為0度。" }, { text: "向法線偏折，折射角小於入射角", isCorrect: false, desc: "垂直入射時並不會發生角度偏折。" }, { text: "偏離法線，折射角大於入射角", isCorrect: false, desc: "只有斜射時才會偏離法線。" }] } },
             { id: "115_N_07", number: 7, subject: "生物", book: 2, chapter: "生殖與遺傳", concept: "減數分裂與染色體套數", curriculumCode: "ah-Ⅳ-2", curriculumDesc: "能應用科學推論，判斷同源染色體在減數分裂不同階段之套數變化。", type: "圖表判讀", difficulty: "中", brief: "某生物體細胞含有 $2$ 對染色體（$2n = 4$），關於該細胞在產生配子時進行減數分裂的過程與染色體套數變化何者正確？", detailedExplanation: "減數分裂包括兩次分裂：第一次分裂為「同源染色體分離」，套數由 $2n \\to n$，此時染色體套數減半，但染色體仍含有雙股（姊妹染色分體）；第二次分裂為「姊妹染色分體分離」，細胞套數不變依舊為 $n$。最終產生 $4$ 個單套染色體配子。", commonMisconception: "容易搞混「同源染色體分離」與「姊妹染色分體分離」的發生順序。第一次分裂分離同源，才是基因減半、套數減半的關鍵步驟。", quiz: { text: "某生物體細胞染色體有23對（$2n = 46$），經減數分裂產生的精子，其染色體數目與套數為：", options: [{ text: "23對，雙套（2n）", isCorrect: false, desc: "精子為配子，必須是單套。" }, { text: "23條，單套（n）", isCorrect: true, desc: "沒錯！23條、單套（n）。" }, { text: "46條，單套（n）", isCorrect: false, desc: "46條是體細胞的數目。" }] } },
             { id: "115_N_08", number: 8, subject: "地球科學", book: 5, chapter: "地球的變動與構造", concept: "地震波與國家級警報時差", curriculumCode: "tm-Ⅳ-2", curriculumDesc: "能理解地震波波速物理性質，並將其應用於解釋生活災害警報之時差。", type: "生活情境", difficulty: "中", brief: "時事熱點：國家級地震警報簡訊常在強震波抵達前顯示預估秒數（例如「13秒後地震抵達」）。此預警系統主要仰賴何種物理性質的差異？", detailedExplanation: "地震波分為 $P$ 波（傳播速度較快，約 $5 \\sim 6\\ km/s$，但破壞力小）與 $S$ 波（傳播速度較慢，約 $3 \\sim 4\\ km/s$，但破壞力強）。預警系統在震央附近感測到快速抵達的 $P$ 波後，立刻以電磁波（光速 $3 \\times 10^5\\ km/s$）將警報簡訊發送至遠處，搶在慢速但強大的 $S$ 波抵達之前，為大眾創造黃金避難秒數。", commonMisconception: "常誤以為警報是「預測地震即將發生」。事實上，地震已經在震央發生，系統只是利用電波速度與地震波速之極大差異，搶在強震動抵達前警告我們。", quiz: { text: "地震發生時，最先抵達地表的波與主要造成劇烈破壞的波依序為：", options: [{ text: "P波、S波", isCorrect: true, desc: "沒錯！P波最快（最先抵達）；S波較慢但破壞力最強。" }, { text: "S波、P波", isCorrect: false, desc: "S波傳播速度較慢。" }, { text: "電磁波、機械波", isCorrect: false, desc: "地震產生的是機械波，不包含電磁波。" }] } },
-            { id: "115_N_09", number: 9, subject: "理化-化學", book: 3, chapter: "物質的反應與水溶液", concept: "溶解度與飽和水溶液", curriculumCode: "pe-Ⅳ-2", curriculumDesc: "能根據不同溫度之溶解度曲線進行數據分析，算出降溫析出晶體質量。", type: "圖表判讀", difficulty: "中", brief: "下表為某固體物質在不同溫度下對 $100\\ g$ 水的溶解度。若在 $60^\\circ\\text{C}$ 時配製一杯飽和水溶液，將其降溫至 $20^\\circ\\text{C}$，有關析出固體質量的敘述何者正確？", detailedExplanation: "溶解度表示在高溫與低溫下，定量水中能溶解之最大溶質質量。降溫析出量計算公式：$\\text{析出量} = \\text{高溫飽和溶液含溶質} - \\text{低溫時最大能溶溶質}。$ 計算時必須注意「溶劑（水）」的質量是否為 $100\\ g$，若否，必須按比例換算。", commonMisconception: "容易將「溶液質量（溶質+水）」直接當作「溶劑（水）質量」代入公式，導致計算失準。一定要看清題目給的是水重還是溶液總重。", quiz: { text: "已知某鹽在 $50^\\circ\\text{C}$ 對水溶解度為 $40\\ g / 100\\ g$ 水。若將 $280\\ g$ 飽和溶液降溫，水不變，此溶液中含水：", options: [{ text: "200 g", isCorrect: true, desc: "正確！140 g 飽和溶液含水 100 g，280 g 即含水 200 g。" }, { text: "100 g", isCorrect: false, desc: "280 g 飽和中含有 80 g 溶質與 200 g 水。" }, { text: "280 g", isCorrect: false, desc: "280 g 是溶液總質量。" }] } },
+            { id: "115_N_09", number: 9, subject: "理化-化學", book: 3, chapter: "物質的反應與水溶液", concept: "溶解度與飽和水溶液", curriculumCode: "pe-Ⅳ-2", curriculumDesc: "能根據不同溫度之溶解度曲線進行數據分析，算出降溫析出晶體質量。", type: "圖表判讀", difficulty: "中", brief: "下表為某固體物質在不同溫度下對 $100\\ g$ 水的溶解度。若在 $60^\\circ\\text{C}$ 時配製一杯飽和水溶液，將其降溫至 $20^\\circ\\text{C}$，有關析出固體質量的敘述何者正確？", detailedExplanation: "溶解度表示在高溫與低溫下，定量水中能溶解之最大溶質質量。降溫析出量計算公式：$\\text{析出量} = \\text{高溫飽和溶液含溶質} - \\text{低溫時最大能溶溶質}。$ 計算時必須注意「溶劑（水）」的質量是否為 $100\\ g$，若否，必須按比例換算。", commonMisconception: "容易將「溶液質量（溶質+水）」直接當作「溶劑（水）質量’」代入公式，導致計算失準。一定要看清題目給的是水重還是溶液總重。", quiz: { text: "已知某鹽在 $50^\\circ\\text{C}$ 對水溶解度為 $40\\ g / 100\\ g$ 水。若將 $280\\ g$ 飽和溶液降溫，水不變，此溶液中含水：", options: [{ text: "200 g", isCorrect: true, desc: "正確！140 g 飽和溶液含水 100 g，280 g 即含水 200 g。" }, { text: "100 g", isCorrect: false, desc: "280 g 飽和中含有 80 g 溶質與 200 g 水。" }, { text: "280 g", isCorrect: false, desc: "280 g 是溶液總質量。" }] } },
             { id: "115_N_10", number: 10, subject: "生物", book: 2, chapter: "生物與環境", concept: "食物網與生態系能量流動", curriculumCode: "ah-Ⅳ-1", curriculumDesc: "能辨識生態系食物網中的因果關係，分析能量流遞減與毒素累積效應。", type: "圖表判讀", difficulty: "易", brief: "圖為某生態系中部分生物所組成的食物網。關於此食物網中的能量流動與「能量金字塔」的遞減效應，下列何者正確？", detailedExplanation: "在生態系中，能量流動是單向的。生產者利用光能合成有機物後，能量沿食物鏈傳遞，但每一階層只有約 $10\\%$ 的能量能轉移到下一階層，其餘多以熱能、代謝消耗等形式散失，形成「能量金字塔」；而戴奧辛等難分解毒素則會隨食物鏈逐級向上累積，稱為「生物累積作用（生物放大）」。", commonMisconception: "容易將「能量金字塔（逐級遞減 10%）」與「生物累積作用（毒素逐級累積遞增）」的趨勢方向搞混。能量是傳遞變少，毒物是累積變多。", quiz: { text: "在能量金字塔中，哪一階層所擁有的總能量最多？", options: [{ text: "初級消費者（草食動物）", isCorrect: false, desc: "初級消費者能量少於生產者。" }, { text: "生產者（綠色植物）", isCorrect: true, desc: "沒錯！生產者處於金字塔最底層，總能量最多。" }, { text: "最高級消費者（肉食動物）", isCorrect: false, desc: "最高級消費者能量最少。" }] } },
             
             // Adding remaining 40 questions dynamically with crisp educational metadata
@@ -523,15 +523,15 @@
             { id: "115_N_33", number: 33, subject: "理化-化學", book: 4, chapter: "進入化學反應", concept: "化學計量與限量試劑計算", curriculumCode: "ah-Ⅳ-2", curriculumDesc: "應用化學計量與莫耳數比例模型，定量計算化學反應中反應物與限量試劑之質量因果。", type: "圖表判讀", difficulty: "難", brief: "已知化學反應式：$2\\ A + B \\to 2\\ C。$ 物質 A 莫耳質量為 $20\\ g/mol$，物質 B 莫耳質量為 $32\\ g/mol$。若將 $40\\ g$ 的 A 與 $48\\ g$ 的 B 充分反應，則下列產物與限量試劑之敘述何者正確？", detailedExplanation: "反應前先求莫耳數：$A$ 莫耳數 $= 40 / 20 = 2\\ mol$；$B$ 莫耳數 $= 48 / 32 = 1.5\\ mol$。依反應式比例 $A : B = 2 : 1$，故 $2\\ mol$ 的 A 反反應需要 $1\\ mol$ 的 B。此時 A 恰好耗盡（A是限量試劑），B 剩下 $1.5 - 1 = 0.5\\ mol$，生成 $2\\ mol$ 的 C。", commonMisconception: "最容易直接用反應物的「質量比（$40 : 48$）」直接進行係數比例計算。切記：化學反應式的係數比例指的是「莫耳數比（分子數比）」，絕對不是質量比！", quiz: { text: "化學反應 $N_2 + 3\\ H_2 \\to 2\\ NH_3。$ 若有 $1\\ mol$ 的氮氣與 $3\\ mol$ 的氫氣完全反應，可生成多少莫耳氨氣？", options: [{ text: "2 mol", isCorrect: true, desc: "正確！依係數比 1 : 3 : 2，剛好反應生成 2 莫耳氨氣。" }, { text: "4 mol", isCorrect: false, desc: "生成物比例需按係數計算。" }, { text: "1.5 mol", isCorrect: false, desc: "反應物充足，可完全反應。" }] } },
             { id: "115_N_34", number: 34, subject: "地球科學", book: 5, chapter: "地板構造與板塊", concept: "板塊邊界類型與地質構造", curriculumCode: "ah-Ⅳ-2", curriculumDesc: "應用板塊張裂與聚合邊界運動模型，推論海溝、中洋脊及褶皺山脈之生成因果。", type: "圖表判讀", difficulty: "中", brief: "板塊運動重塑地表外貌。關於「張裂性板塊邊界」與「聚合性板塊邊界」的地質特徵、構造比較，下列何者正確？", detailedExplanation: "聚合性板塊邊界（如台灣、喜馬拉雅山）受擠壓力，易形成逆斷層、褶皺山脈、海溝與安山岩質火山；張裂性板塊邊界（如冰島、東非大裂谷、大西洋中洋脊）受拉張力，易形成正斷層、裂谷與玄武岩質中洋脊噴發。", commonMisconception: "常將海溝（聚合性、擠壓）與中洋脊（張裂性、拉張）的受力類型與邊界特徵記反。中洋脊是新地殼誕生地，海溝是舊地殼消亡消逝處。", quiz: { text: "台灣島主要是由於哪一種板塊運動邊界、受何種力量擠壓而隆起抬升形成的？", options: [{ text: "張裂性邊界，受拉張力作用", isCorrect: false, desc: "台灣是聚合擠壓形成的。" }, { text: "聚合性邊界，受擠壓力作用", isCorrect: true, desc: "答對！菲律賓海板塊與歐亞板塊聚合擠壓，形成台灣及褶皺山脈群。" }, { text: "錯動性邊界，無擠壓無拉張", isCorrect: false, desc: "主動力仍是強烈聚合擠壓。" }] } },
             { id: "115_N_35", number: 35, subject: "理化-物理", book: 6, chapter: "電與生活", concept: "延長線並聯安全與電流熱效應", curriculumCode: "tm-Ⅳ-2", curriculumDesc: "能運用電功率與安全電流熱效應知識，評估並解釋家庭延長線過載自動跳脫之機制與安全用電防護。", type: "生活情境", difficulty: "中", brief: "家庭延長線最大功率標示 $1650\\ W$。若插座上同時並聯使用吹風機（$1200\\ W$）與電磁爐（$1000\\ W$），延長線自動過載跳脫斷電，這跟電氣何種性質有關？", detailedExplanation: "家庭與延長線用電為「並聯」。並聯電路中各電器獨立運作、總功率等於分路功率相加：$1200 + 1000 = 2200\\ W$。電功率 $P = I \\cdot V$（市電電壓 $110\\ V$ 恆定），總功率超出極限（$2200\\ W > 1650\\ W$），導致線路總電流大增，產生劇烈電流熱效應（$H = I^2Rt$），過載保護器因而自動跳脫斷電防走火。", commonMisconception: "容易混淆並聯電阻關係。常直覺以為電器插得越多，總電阻會變大。記住：並聯支路越多，『總等效電阻反變小』，所以在電壓固定下會導致總電流暴增過載。", quiz: { text: "在同一個延長線插座上並聯插上越多的電器，會導致線路上的：", options: [{ text: "等效總電阻變大，總電流變小", isCorrect: false, desc: "不對，並聯電阻越並越小。" }, { text: "等效總電阻變小，總電流大增", isCorrect: true, desc: "正確！並聯通道多，等效電阻下降，在恆定電壓下造成總電流大增過載。" }, { text: "總電壓大增，容易燒毀電器", isCorrect: false, desc: "電壓由電力公司供電維持，基本不變。" }] } },
-            { id: "115_N_36", number: 36, subject: "理化-化學", book: 5, chapter: "有機化合物", concept: "有機物分類與酯化反應", curriculumCode: "pe-Ⅳ-2", curriculumDesc: "設計並分析酯化實驗步驟（酸加醇加濃硫酸），證明酯類生成與不溶於水之物理特徵。", type: "實驗探究", difficulty: "中", brief: "在試管中加入乙醇（酒精）、乙酸（醋酸）與數滴濃硫酸，加熱進行反應。關於此實驗生成物的性質與濃硫酸的作用，何者正確？", detailedExplanation: "本反應為「酯化反應」：$\\text{有機酸} + \\text{醇} \\xrightarrow{\\text{濃硫酸}} \\text{酯} + \\text{水}。$ 乙酸加乙醇生成「乙酸乙酯」（具果香味、不溶於水、密度比水小會浮在水面上）。濃硫酸在此反應中擔任「催化劑」兼「脫水劑」，加速反應並吸水促平衡右移。", commonMisconception: "容易將「酯化反應」與「皂化反應（油脂加強鹼生成肥皂與甘油）」混淆。兩者化學原料、生成物質及實驗步驟皆不同，需仔細分辨。", quiz: { text: "酯化反應中，生成的酯類具有何種典型物理與感官特徵？", options: [{ text: "易溶於水，呈強酸性", isCorrect: false, desc: "酯類難溶於水且呈中性。" }, { text: "具有香氣、難溶於水、密度比水小而浮在水面上", isCorrect: true, desc: "答對！酯類（如水果香）不溶於水、浮在表面。" }, { text: "呈黑色膠狀固體，有臭雞蛋味", isCorrect: false, desc: "這不是酯類的特徵。" }] } },
+            { id: "115_N_36", number: 36, subject: "理化-化學", book: 5, chapter: "有機化合物", concept: "有機物分類與酯化反應", curriculumCode: "pe-Ⅳ-2", curriculumDesc: "設計並分析酯化實驗步驟（酸加醇加濃硫酸），證明酯類生成與不溶於水之物理特徵。", type: "實驗探究", difficulty: "中", brief: "在試管中加入乙醇（酒精）、乙酸（醋酸）與數滴濃硫酸，加熱進行反應。關於此實驗生成物的性質與濃硫酸的作用，何者正確？", detailedExplanation: "本反應為「酯化反應」：$\\text{有機酸} + \\text{醇} \\xrightarrow{\\text{濃硫酸}} \\text{酯} + \\text{水}. $ 乙酸加乙醇生成「乙酸乙酯」（具果香味、不溶於水、密度比水小會浮在水面上）。濃硫酸在此反應中擔任「催化劑」兼「脫水劑」，加速反應並吸水促平衡右移。", commonMisconception: "容易將「酯化反應」與「皂化反應（油脂加強鹼生成肥皂與甘油）」混淆。兩者化學原料、生成物質及實驗步驟皆不同，需字細分辨。", quiz: { text: "酯化反應中，生成的酯類具有何種典型物理與感官特徵？", options: [{ text: "易溶於水，呈強酸性", isCorrect: false, desc: "酯類難溶於水且呈中性。" }, { text: "具有香氣、難溶於水、密度比水小而浮在水面上", isCorrect: true, desc: "答對！酯類（如水果香）不溶於水、浮在表面。" }, { text: "呈黑色膠狀固體，有臭雞蛋味", isCorrect: false, desc: "這不是酯類的特徵。" }] } },
             { id: "115_N_37", number: 37, subject: "生物", book: 2, chapter: "生物多樣性", concept: "五界分類與檢索表判讀", curriculumCode: "po-Ⅳ-1", curriculumDesc: "能根據不同生物細胞結構特徵（細胞壁、細胞核、葉綠體），在檢索表中進行分類規律判讀。", type: "圖表判讀", difficulty: "中", brief: "下圖為某生物分類檢索表。若要將「草履蟲（真核單細胞、無細胞壁）」與「大腸桿菌（原核、有細胞壁）」在檢索表中正確定位，應根據哪些特徵特點？", detailedExplanation: "五界分類關鍵特徵：原核生物界（大腸桿菌、藍綠菌）「無細胞核（無核膜物）」；真核生物（原生生物界、真菌界、植物界、動物界）「有細胞核」。草履蟲屬於原生生物界，有細胞核，無細胞壁，具有能運動的纖毛結構；大腸桿菌無細胞核，有細胞壁，屬原核生物。", commonMisconception: "常將「藍綠菌（原核生物界）」與一般的「綠藻、植物（真核、植物界/原生生物界）」混淆。藍綠菌雖可光合作用，但為原核生物，無細胞核與葉綠體！", quiz: { text: "「酵母菌（真菌界）」與「大腸桿菌（原核生物界）」在細胞結構上最核心的差異是：", options: [{ text: "酵母菌有細胞壁，而大腸桿菌沒有", isCorrect: false, desc: "兩者其實都有細胞壁。" }, { text: "酵母菌有真正的細胞核與核膜，而大腸桿菌沒有", isCorrect: true, desc: "正確！酵母菌是真核（真菌），大腸桿菌是原核，無核膜。" }, { text: "酵母菌有葉綠體能光合作用", isCorrect: false, desc: "真菌界生物均無葉綠體，不能光合作用。" }] } },
             { id: "115_N_38", number: 38, subject: "理化-物理", book: 5, chapter: "電路與歐姆定律", concept: "歐姆定律與電阻並聯計算", curriculumCode: "ah-Ⅳ-2", curriculumDesc: "應用電阻並聯分流與歐姆定律模型，定量計算複雜並聯電路中分路與總電流因果關係。", type: "圖表判讀", difficulty: "難", brief: "下圖電路中，已知兩定值電阻 $R_1 = 10\\ \\Omega$ 與 $R_2 = 15\\ \\Omega$ 呈並聯連接，外接一個 $30\\ V$ 的直流電源。關於流經兩電阻之分路電流與總電流計算，何者正確？", detailedExplanation: "並聯電路特點：分路電壓相同，皆等於電源電壓 $V = 30\\ V$。由歐姆定律 $I = V/R$：流經 $R_1$ 的電流 $I_1 = 30 / 10 = 3\\ A$；流經 $R_2$ 的電流 $I_2 = 30 / 15 = 2\\ A$。電路中的總電流 $I_{\\text{總}} = I_1 + I_2 = 3 + 2 = 5\\ A$。等效總電阻 $R_{\\text{總}} = 30 / 5 = 6\\ \\Omega$。", commonMisconception: "計算並聯等效電阻時，常將阻值直接相加算成 $25\\ \\Omega$（這是串聯算式）。並聯等效電阻計算公式應為 $\\frac{1}{R_{\\text{總}}} = \\frac{1}{R_1} + \\frac{1}{R_2} \\implies R_{\\text{總}} = \\frac{10 \\times 15}{10+15} = 6\\ \\Omega$。", quiz: { text: "若兩個電阻阻值相同並聯，其等效總電阻將會變為單個電阻阻值的：", options: [{ text: "兩倍", isCorrect: false, desc: "串聯才是兩倍。" }, { text: "一半", isCorrect: true, desc: "答對！並聯等效電阻減半，通道變寬。" }, { text: "完全不變", isCorrect: false, desc: "並聯會改變電路等效電阻。" }] } },
-            { id: "115_N_39", number: 39, subject: "地球科學", book: 6, chapter: "地球與太空", concept: "恆星亮度與絕對、視星等", curriculumCode: "po-Ⅳ-1", curriculumDesc: "能從星等數據表判讀恆星亮度與發光能力，區分視星等與絕對星等的規律性質。", type: "知識記憶", difficulty: "中", brief: "下表為幾顆天體的星等數據。關於「視星等」與「絕對星等」代表的物理意義、以及天體發光能力的比較，何者正確？", detailedExplanation: "「視星等」代表地球觀測者肉眼看天體的「表面亮度」，數值越小（甚至為負值）代表看起來越亮；「絕對星等」是將所有天體移到相同距離（32.6光年）所測得之亮度，代表天體「真實發光能力」。織女星視星等為 0.0，太陽視星等為 -26.7，代表在地球看太陽最亮，但論真實發光能力（絕對星等），太陽遠低於織女星。", commonMisconception: "直覺以為「視星等越小的星星，其發光能力一定越強」。這忽略了距離影響，離得極近的微弱手電筒也會比遠方的探照燈看起來亮。", quiz: { text: "某顆超巨星的絕對星等為 -5.0，視星等為 +3.0，這代表此恆星：", options: [{ text: "在地球上看起來極亮，但真實發光能力弱", isCorrect: false, desc: "視星等+3較暗，絕對星等-5極亮。" }, { text: "在地球上看起來較暗，但其實際發光能力極強", isCorrect: true, desc: "沒錯！數值越負代表實際發光能力越驚人，只是因距離極遠而看起來暗。" }, { text: "距離地球小於32.6光年", isCorrect: false, desc: "視星等大於絕對星等，代表實距離大於32.6光年。" }] } },
-            { id: "115_N_40", number: 40, subject: "理化-物理", book: 5, chapter: "功與能", concept: "機械省力原理與槓桿平衡", curriculumCode: "ah-Ⅳ-2", curriculumDesc: "應用力矩平衡模型，演繹分析不同施力臂與抗力臂槓桿機械在省力、省時或省功之因果關係。", type: "圖表判讀", difficulty: "中", brief: "下圖為三種不同支點位置的槓桿工具（開罐器、筷子、蹺蹺板）。關於這些槓桿機械在省力、省功與省時特點之比較，何者正確？", detailedExplanation: "根據力矩平衡：施力 $\\times$ 施力臂 $=$ 抗力 $\\times$ 抗力臂。當施力臂大於抗力臂時（如開罐器），施力小於抗力，此為「省力槓桿（但費時）」；若施力臂小於抗力臂時（如筷子、鑷子），為「費力但省距離（省時）」。任何機械都「絕對無法省功」！", commonMisconception: "常落入「省力機械也可以同時省功」的物理誤區。省力的代價是費距離，省了力氣卻多走了位移，總功（$W = F \\cdot d$）恆定不變，絕無省功機械。", quiz: { text: "關於筷子、鑷子等「施力臂小於抗力臂」的工具，其科學設計目的在於：", options: [{ text: "節省推力，施力輕易", isCorrect: false, desc: "這在力氣上是費力的。" }, { text: "費力，但可以節省移動距離（省時、微操靈活）", isCorrect: true, desc: "正確！雖然費力，但手指微動，前端夾取位移大，靈巧靈敏。" }, { text: "減少施力對物體所做的功", isCorrect: false, desc: "任何機械皆不省功。" }] } },
+            { id: "115_N_39", number: 39, subject: "地球科學", book: 6, chapter: "地球與太空", concept: "恆星亮度與絕對、視星等", curriculumCode: "po-Ⅳ-1", curriculumDesc: "能從星等數據表判讀恆星亮度與發光能力，區分視星等與絕對星等的規律性質。", type: "知識記憶", difficulty: "中", brief: "下表為幾顆天體星等數據。關於「視星等」與「絕對星等」代表的物理意義、以及天體發光能力的比較，何者正確？", detailedExplanation: "「視星等」代表地球觀測者肉眼看天體的「表面亮度」，數值越小（甚至為負值）代表看起來越亮；「絕對星等」是將所有天體移到相同距離（32.6光年）所測得之亮度，代表天體「真實發光能力」。織女星視星等為 0.0，太陽視星等為 -26.7，代表在地球看太陽最亮，但論真實發光能力（絕對星等），太陽遠低於織女星。", commonMisconception: "直覺以為「視星等越小的星星，其發光能力一定越強」。這忽略了距離影響，離得極近的微弱手電筒也會比遠方的探照燈看起來亮。", quiz: { text: "某顆超巨星的絕對星等為 -5.0，視星等為 +3.0，這代表此恆星：", options: [{ text: "在地球上看起來極亮，但真實發光能力弱", isCorrect: false, desc: "視星等+3較暗，絕對星等-5極亮。" }, { text: "在地球上看起來較暗，但其實際發光能力極強", isCorrect: true, desc: "沒錯！數值越負代表實際發光能力越驚人，只是因距離極遠而看起來暗。" }, { text: "距離地球小於32.6光年", isCorrect: false, desc: "視星等大於絕對星等，代表實距離大於32.6光年。" }] } },
+            { id: "115_N_40", number: 40, subject: "理化-物理", book: 5, chapter: "功與能", concept: "機械省力原理與槓桿平衡", curriculumCode: "ah-Ⅳ-2", curriculumDesc: "應用力矩平衡模型，演繹分析不同施力臂與抗力臂槓桿機械在省力、省時或省功之因果關係。", type: "圖表判讀", difficulty: "中", brief: "下圖為三種不同支點位置的槓桿工具（開罐器、筷子、蹺蹺板）。關於這些槓桿機械在省力、省功與省時特點之比較，何者正確？", detailedExplanation: "根據力矩平衡：施力 $\\times$ 施力臂 $=$ 抗力 $\\times$ 抗力臂。當施力臂大於抗力臂時（如開罐器），施力小於抗力，此為「省力槓桿（但費時）」；若施力臂小於抗力臂時（如筷子、鑷子），為「費力但省距離（省時）」。任何機械都「絕對無法省功」！", commonMisconception: "常落入「省力機械也可以同時省功」的物理誤區。省力的代價是費距離，省了力氣卻多走了位移，總功（$W = F \\cdot d$）恆定不變，裝飾用無省功機械。", quiz: { text: "關於筷子、鑷子等「施力臂小於抗力臂」的工具，其科學設計目的在於：", options: [{ text: "節省推力，施力輕易", isCorrect: false, desc: "這在力氣上是費力的。" }, { text: "費力，但可以節省移動距離（省時、微操靈活）", isCorrect: true, desc: "正確！雖然費力，但手指微動，前端夾取位移大，靈巧靈敏。" }, { text: "減少施力對物體所做的功", isCorrect: false, desc: "任何機械皆不省功。" }] } },
             
             // 41 to 50
             { id: "115_N_41", number: 41, subject: "理化-化學", book: 5, chapter: "常見有機物", concept: "塑膠與合成聚合物分類", curriculumCode: "po-Ⅳ-1", curriculumDesc: "從網狀、鏈狀高分子結構特徵中，發現熱塑性與熱固性塑膠加熱熔融物理規律。", type: "知識記憶", difficulty: "易", brief: "關於高分子聚合物、日常塑膠製品（如寶特瓶、輪胎、電路板）分類為熱塑性與熱固性的結構比較，何者正確？", detailedExplanation: "高分子聚合物分為：1.「熱塑性聚合物」：分子呈鏈狀結構，受熱會軟化熔融，可回收重複加熱塑形（如寶特瓶 PET、聚乙烯 PE）；2.「熱固性聚合物」：分子呈網狀結構，結構緊密，受熱不熔化、不軟化，無法回收重新塑形（如輪胎、酚醛樹脂電路板、碗盤）。", commonMisconception: "誤以為「只要是塑膠垃圾，就全部都可以加熱熔化回收再利用」。網狀結構的熱固性塑膠受熱只會燒焦碳化，無法重新軟化塑形，不可回收再造。", quiz: { text: "我們常用的寶特瓶（PET）受熱會變形、軟化，其高分子結構與分類應為：", options: [{ text: "網狀結構，熱固性聚合物", isCorrect: false, desc: "受熱會變形軟化者為熱塑性。" }, { text: "鏈狀結構，熱塑性聚合物", isCorrect: true, desc: "正確！鏈狀結構高分子，加熱易熔融變形，具熱塑性。" }, { text: "天然聚合物，不易分解", isCorrect: false, desc: "PET 是合成聚合物。" }] } },
-            { id: "115_N_42", number: 42, subject: "跨科主題", book: 6, chapter: "環境與永續發展", concept: "迎風面與酸雨空間分佈", curriculumCode: "tr-Ⅳ-1", curriculumDesc: "統整地形阻擋與季風氣候知識，設計推論冬季台灣北部與中南部酸雨分佈因果。", type: "生活情境", difficulty: "中", brief: "「酸雨跨科題組」：分析台灣環境監測站數據，冬季時北部山區與沿海測得酸雨（pH < 5.0）頻率極高，而中部測站之酸雨頻率及降雨皆極低，造成此空間分佈的主因為何？", detailedExplanation: "冬季時台灣盛行東北季風。迎風面的北部與東北部（如陽明山、宜蘭）水氣充足、受地形抬升降雨頻繁，此時季風攜帶大氣中的酸性燃燒前驅物（$SO_2, NO_x$）隨雨水大量降落沉降。中南部處於中央山脈「背風面」，少雨晴朗，故冬季酸雨機率極低。此為氣象風向地形與化學酸鹼的跨學科融合考題。", commonMisconception: "容易落入僅用化學單一角度判定「哪裡工廠排廢氣多、哪裡就有酸雨」的盲點。酸雨降落深受「季風、氣候、風向」與「降雨帶分佈」決定，有時污染源在境外，卻降在台灣迎風面。", quiz: { text: "台灣冬季酸雨分布呈现「北多南少」之大氣地科特徵，主要與何種風向及迎風降雨有關？", options: [{ text: "西南季風，中南部迎風降雨", isCorrect: false, desc: "冬季台灣吹東北季風。" }, { text: "東北季風，北部地區迎風降雨", isCorrect: true, desc: "答對！東北季風迎風面加上污染沉降，造成冬季北部酸雨嚴重。" }, { text: "東南風，東部地區降雨", isCorrect: false, desc: "冬季盛行東北風。" }] } },
+            { id: "115_N_42", number: 42, subject: "跨科主題", book: 6, chapter: "環境與永續發展", concept: "迎風面與酸雨空間分佈", curriculumCode: "tr-Ⅳ-1", curriculumDesc: "統整地形阻擋與季風氣候知識，設計推論冬季台灣北部與中南部酸雨分佈因果。", type: "生活情境", difficulty: "受", brief: "「酸雨跨科題組」：分析台灣環境監測站數據，冬季時北部山區與沿海測得酸雨（pH < 5.0）頻率極高，而中部測站之酸雨頻率及降雨皆極低，造成此空間分佈的主因為何？", detailedExplanation: "冬季時台灣盛行東北季風。迎風面的北部與東北部（如陽明山、宜蘭）水氣充足、受地形抬升降雨頻繁，此時季風攜帶大氣中的酸性燃燒前驅物（$SO_2, NO_x$）隨雨水大量降落沉降。中南部處於中央山脈「背風面」，少雨晴朗，故冬季酸雨機率極低。此為氣象風向地形與化學酸鹼的跨學科融合考題。", commonMisconception: "容易落入僅用化學單一角度判定「哪裡工廠排廢氣多、哪裡就有酸雨」的盲點。酸雨降落深受「季風、氣候、風向」與「降雨帶分佈」決定，有時污染源在境外，卻降在台灣迎風面。", quiz: { text: "台灣冬季酸雨分布呈现「北多南少」之大氣地科特徵，主要與何種風向及迎風降雨有關？", options: [{ text: "西南季風，中南部迎風降雨", isCorrect: false, desc: "冬季台灣吹東北季風。" }, { text: "東北季風，北部地區迎風降雨", isCorrect: true, desc: "答對！東北季風迎風面加上污染沉降，造成冬季北部酸雨嚴重。" }, { text: "東南風，東部地區降雨", isCorrect: false, desc: "冬季盛行東北風。" }] } },
             { id: "115_N_43", number: 43, subject: "跨科主題", book: 6, chapter: "環境與永續發展", concept: "酸雨對土壤與金屬結構之化學侵蝕", curriculumCode: "pe-Ⅳ-2", curriculumDesc: "根據酸與金屬及碳酸鈣化學反應數據，分析酸雨侵蝕建築、古蹟之反應產物與受損原理。", type: "圖表判讀", difficulty: "中", brief: "「酸雨跨科題組」：酸雨會對水泥大理石雕像建築與鐵製欄杆造成嚴重化學侵蝕。關於酸雨對這兩類結構的反應，下列化學反應敘述何者正確？", detailedExplanation: "大理石與水泥主成分為碳酸鈣（$CaCO_3$），會與酸雨中的氫離子反應生成二氧化碳（$CO_2$）氣體，使雕像溶解風化、表面剝落：$CaCO_3 + 2\\ H^+ \\to Ca^{2+} + H_2O + CO_2\\uparrow。$ 而鐵製欄杆（$Fe$）活性大於氫，與酸反應會被氧化生鏽腐蝕，並釋放出氫氣（$H_2\\uparrow$）。", commonMisconception: "誤以為「酸雨侵蝕金屬，任何金屬都會被融化」。活性比氫小的貴金屬（如黃金 $Au$、白金 $Pt$）不會與一般酸雨發生化學反應被侵蝕。", quiz: { text: "酸雨侵蝕以「大理石（碳酸鈣）」雕琢的歷史古蹟時，最容易發生何種化學反應？", options: [{ text: "產生大量劇毒的二氧化硫氣體", isCorrect: false, desc: "反應釋放的是無毒無味的二氧化碳氣體。" }, { text: "雕像表面與酸反應，溶解並釋放出二氧化碳氣體", isCorrect: true, desc: "沒錯！碳酸鹽遇酸產生二氧化碳，使雕像結構溶解損毀。" }, { text: "大理石吸酸，使雕像體積迅速膨脹變重", isCorrect: false, desc: "溶解流失，雕像會變輕、受損。" }] } },
             { id: "115_N_44", number: 44, subject: "理化-化學", book: 4, chapter: "酸鹼鹽反應", concept: "常見指示劑變色範圍與滴定", curriculumCode: "po-Ⅳ-1", curriculumDesc: "能從指示劑變色 pH 數據表中，規律判定未知水溶液的酸鹼特性與變色狀態。", type: "圖表判讀", difficulty: "中", brief: "下表為酚酞與石蕊指示劑的變色 $pH$ 值範圍。若有一未知水溶液滴入酚酞呈無色，滴入石蕊呈紅色，則該溶液之 $pH$ 值最可能落在何處？", detailedExplanation: "酚酞變色範圍：$pH < 8.2$ 為無色，$pH > 10.0$ 為粉紅色；石蕊變色範圍：$pH < 5.0$ 為紅色，$pH > 8.0$ 為藍色。未知液滴入酚酞呈無色，代表其 $pH < 8.2$；滴入石蕊呈紅色，代表其 $pH < 5.0$。綜合判定，該溶液必為強酸性，$pH$ 值小於 $5.0$。", commonMisconception: "容易誤以為指示劑是「精確的酸鹼值指示，一跨過 7 才會變色」。指示劑有其特定的「變色範圍間隔」，如酚酞在 $8.2 \\sim 10$ 之間變色，在中性時依然是無色的！", quiz: { text: "在一杯 $pH = 7.0$ 的純水中滴入「酚酞指示劑」，溶液將呈現何種顏色？", options: [{ text: "無色", isCorrect: true, desc: "正確！酚酞在 pH 8.2 以下皆為無色，純水呈無色。" }, { text: "紅色", isCorrect: false, desc: "需 pH > 10 才會呈顯著紅/粉紅色。" }, { text: "黃色", isCorrect: false, desc: "酚酞無黃色顯色。" }] } },
             { id: "115_N_45", number: 45, subject: "生物", book: 1, chapter: "生物的運輸", concept: "水分在植物體內的運輸動力", curriculumCode: "ah-Ⅳ-2", curriculumDesc: "應用氣孔開閉、水分散失模型，推論植物體內水分向上拉引運輸的主動力因果關係。", type: "知識記憶", difficulty: "易", brief: "高大的紅杉木能將地下水分向上運送到數十公尺高的葉片頂端。關於促使植物體內水分向上運輸的最主要動力，何者正確？", detailedExplanation: "水分在植物體內（導管）運輸的動力有：根壓、毛細作用與蒸散作用。其中，「蒸散作用」是水分從葉片氣孔蒸發，產生極大的向上拉引力，這是植物向上輸送水分「最主要、最源源不絕的動力」。", commonMisconception: "誤以為「主動運輸或根部吸水的推力」是輸送水分上高樹的主動力。根部吸水產生的「根壓」極小，在無蒸散拉力下，水分根本無法送上高大的樹頂。", quiz: { text: "促使植物水分能在木質部導管向上源源不絕傳遞、高達百米的最核心主動力是：", options: [{ text: "根部主動運輸產生的根壓推力", isCorrect: false, desc: "根壓推力很小，無法送上百米。" }, { text: "葉片進行蒸散作用產生的向下拉引力（張力）", isCorrect: true, desc: "答對！蒸散作用是帶動植物體內水分循環、降溫的最重要向上拉力。" }, { text: "光合作用合成葡萄糖的吸引力", isCorrect: false, desc: "葡萄糖合成不直接提供向上拉力。" }] } },
@@ -546,8 +546,38 @@
         const KEY_COMPLETED = "115_nature_v2_completed";
         const KEY_SCORES = "115_nature_v2_scores";
 
-        let completedMap = JSON.parse(localStorage.getItem(KEY_COMPLETED)) || {};
-        let scoreMap = JSON.parse(localStorage.getItem(KEY_SCORES)) || {};
+        // Safe storage getters and setters for Sandbox environments where localStorage is blocked
+        function safeGetItem(key) {
+            try {
+                return localStorage.getItem(key);
+            } catch (e) {
+                console.warn("localStorage is blocked or unavailable:", e);
+                return null;
+            }
+        }
+
+        function safeSetItem(key, value) {
+            try {
+                localStorage.setItem(key, value);
+            } catch (e) {
+                console.warn("localStorage is blocked or unavailable:", e);
+            }
+        }
+
+        let completedMap = {};
+        let scoreMap = {};
+
+        try {
+            completedMap = JSON.parse(safeGetItem(KEY_COMPLETED)) || {};
+        } catch (e) {
+            completedMap = {};
+        }
+
+        try {
+            scoreMap = JSON.parse(safeGetItem(KEY_SCORES)) || {};
+        } catch (e) {
+            scoreMap = {};
+        }
 
         let currentActiveWeek = null;
 
@@ -812,7 +842,7 @@
                 const isReviewed = completedMap[q.id] === true;
 
                 container.insertAdjacentHTML('beforeend', `
-                    <div onclick="selectQuestion('${q.id}')" class="p-3.5 border-l-4 ${stripColor} border-y border-r rounded-xl cursor-pointer transition-all duration-200 ${activeClass}">
+                    <div onclick="selectQuestion('${q.id}')" data-id="${q.id}" class="p-3.5 border-l-4 ${stripColor} border-y border-r rounded-xl cursor-pointer transition-all duration-200 ${activeClass}">
                         <div class="flex justify-between items-center mb-1.5">
                             <div class="flex items-center gap-1.5">
                                 <span class="text-xs font-black text-slate-400 font-mono">第 ${q.number} 題</span>
@@ -830,13 +860,29 @@
             });
         }
 
+        // Update card active classes directly without destroying/re-rendering DOM to keep scroll position intact
+        function updateActiveCardUI(selectedId) {
+            const container = document.getElementById('div-question-list');
+            const cards = container.querySelectorAll('[data-id]');
+            cards.forEach(card => {
+                const cardId = card.getAttribute('data-id');
+                if (cardId === selectedId) {
+                    card.classList.add('active-card');
+                    card.classList.remove('bg-white', 'border-slate-100');
+                } else {
+                    card.classList.remove('active-card');
+                    card.classList.add('bg-white', 'border-slate-100');
+                }
+            });
+        }
+
         // Load Question details on click
         let selectedQuestion = null;
         window.selectQuestion = function(id) {
             selectedQuestion = questionDatabase.find(q => q.id === id);
             
-            // Re-render list selection
-            applyFilters();
+            // Sync highlight state on the left column list
+            updateActiveCardUI(id);
 
             // Hide placeholder, show details
             document.getElementById('div-placeholder').classList.add('hidden');
@@ -868,12 +914,14 @@
 
             // Re-render mathematical equations instantly via KaTeX auto-render
             try {
-                renderMathInElement(document.getElementById('div-detail-panel'), {
-                    delimiters: [
-                        {left: "$$", right: "$$", display: true},
-                        {left: "$", right: "$", display: false}
-                    ]
-                });
+                if (typeof renderMathInElement === 'function') {
+                    renderMathInElement(document.getElementById('div-detail-panel'), {
+                        delimiters: [
+                            {left: "$$", right: "$$", display: true},
+                            {left: "$", right: "$", display: false}
+                        ]
+                    });
+                }
             } catch (err) {
                 console.log("KaTeX parsing skipped or completed: ", err);
             }
@@ -889,10 +937,13 @@
             if (!selectedQuestion) return;
             const checked = document.getElementById('chk-completed').checked;
             completedMap[selectedQuestion.id] = checked;
-            localStorage.setItem(KEY_COMPLETED, JSON.stringify(completedMap));
+            safeSetItem(KEY_COMPLETED, JSON.stringify(completedMap));
             
             // Instantly update gauges & cards
             updateProgressGauges();
+            
+            // Re-render only list tags to show checkmark
+            const queryVal = document.getElementById('inp-search').value;
             applyFilters();
         }
 
@@ -927,7 +978,7 @@
             // Save first attempt score for analytics
             if (scoreMap[selectedQuestion.id] === undefined) {
                 scoreMap[selectedQuestion.id] = { answered: true, correct: chosen.isCorrect };
-                localStorage.setItem(KEY_SCORES, JSON.stringify(scoreMap));
+                safeSetItem(KEY_SCORES, JSON.stringify(scoreMap));
                 updateProgressGauges();
             }
 
