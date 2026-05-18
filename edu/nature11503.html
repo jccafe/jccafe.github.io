@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { BookOpen, Target, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, BrainCircuit, Filter } from 'lucide-react';
+import { BookOpen, Target, AlertTriangle, CheckCircle, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 
 // --- 模擬題庫資料庫 (JSON Schema) ---
 const questionsDatabase = [
@@ -61,11 +61,11 @@ const questionsDatabase = [
 ];
 
 export default function App() {
-  const [activeStage, setActiveStage] = useState(0); // 0: 自訂, 1-4: 階段
+  const [activeStage, setActiveStage] = useState(0); 
   const [filters, setFilters] = useState({ subject: '', difficulty: '', type: '' });
   const [expandedCards, setExpandedCards] = useState({});
 
-  // 處理階段按鈕點擊，自動帶入預設篩選條件
+  // 處理階段按鈕點擊
   const handleStageClick = (stageNum) => {
     setActiveStage(stageNum);
     switch(stageNum) {
@@ -73,10 +73,10 @@ export default function App() {
         setFilters({ subject: '', difficulty: '基礎', type: '單一知識題' });
         break;
       case 2:
-        setFilters({ subject: '', difficulty: '', type: '實驗探究題' }); // 簡化為一種，實務上可包含圖表
+        setFilters({ subject: '', difficulty: '', type: '實驗探究題' }); 
         break;
       case 3:
-        setFilters({ subject: '', difficulty: '中等', type: '' }); // 模擬弱點突破
+        setFilters({ subject: '', difficulty: '中等', type: '' }); 
         break;
       case 4:
         setFilters({ subject: '', difficulty: '進階', type: '' });
@@ -87,7 +87,7 @@ export default function App() {
   };
 
   const handleFilterChange = (key, value) => {
-    setActiveStage(0); // 切換回自訂模式
+    setActiveStage(0); 
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -103,7 +103,6 @@ export default function App() {
     return questionsDatabase.filter(q => {
       const matchSubject = filters.subject ? q.subject.includes(filters.subject) : true;
       const matchDifficulty = filters.difficulty ? q.difficulty === filters.difficulty : true;
-      // 階段二特殊處理：包含實驗或圖表
       const matchType = filters.type 
         ? (activeStage === 2 ? (q.question_type === '實驗探究題' || q.question_type === '圖表分析題') : q.question_type === filters.type) 
         : true;
@@ -114,11 +113,11 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-4 md:p-8">
       
-      {/* Header */}
+      {/* 標題區塊 */}
       <header className="max-w-5xl mx-auto mb-8 text-center md:text-left flex flex-col md:flex-row items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-indigo-700 flex items-center gap-2 justify-center md:justify-start">
-            <BrainCircuit className="w-8 h-8" />
+            <Lightbulb className="w-8 h-8 text-amber-500" />
             115會考自然科 線上複習系統
           </h1>
           <p className="text-slate-500 mt-2">結合 108 課綱與精準篩選的數位化題庫</p>
@@ -159,7 +158,7 @@ export default function App() {
         {/* 自訂篩選列 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-wrap gap-4 items-center">
           <div className="flex items-center gap-2 text-slate-700 font-medium">
-            <Filter className="w-5 h-5" /> 自訂篩選：
+            <span className="font-bold text-indigo-500 mr-1">篩選器：</span>
           </div>
           
           <select 
@@ -261,7 +260,7 @@ export default function App() {
                     <div className="mt-6 p-5 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-4 animate-in fade-in slide-in-from-top-2">
                       
                       <div className="flex gap-3">
-                        <CheckCircle2 className="w-6 h-6 text-emerald-500 shrink-0" />
+                        <CheckCircle className="w-6 h-6 text-emerald-500 shrink-0" />
                         <div>
                           <h4 className="font-bold text-slate-700">正確解答：<span className="text-emerald-600 text-lg">{q.answer}</span></h4>
                         </div>
