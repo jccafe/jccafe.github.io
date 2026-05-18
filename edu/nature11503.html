@@ -1,384 +1,301 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>115會考自然科 V2.0 智慧線上複習平台</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.4/katex.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.4/katex.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.4/contrib/auto-render.min.js"></script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: { 50:'#f0fdf4', 100:'#dcfce7', 600:'#16a34a', 700:'#15803d', 800:'#166534', 900:'#14532d' },
-                        academic: { 50:'#f0f7ff', 100:'#e0effe', 600:'#0284c7', 700:'#0369a1', 800:'#075985', 900:'#0c4a6e' }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .active-card { border-color: #0284c7 !important; background-color: #f0f7ff !important; box-shadow: 0 4px 12px -2px rgba(2,132,199,0.12) !important; }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col text-slate-800">
+import React, { useState, useMemo } from 'react';
+import { BookOpen, Target, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, BrainCircuit, Filter } from 'lucide-react';
 
-    <header class="bg-gradient-to-r from-academic-900 to-academic-700 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-white/10 rounded-xl backdrop-blur-md">
-                    <i class="fa-solid fa-graduation-cap text-3xl text-amber-300"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl md:text-2xl font-bold tracking-tight">115會考自然科 V2.0 智慧線上複習平台</h1>
-                    <p class="text-xs text-slate-200">基於 108 課綱精神與 SDD V2.0 規格建置之 50 題全功能數位自學系統</p>
-                </div>
-            </div>
-            <nav class="flex bg-academic-950/40 p-1 rounded-xl border border-white/10 w-full md:w-auto">
-                <button onclick="switchTab('reviewer')" id="btn-tab-reviewer" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all bg-white text-academic-800 shadow-sm">
-                    <i class="fa-solid fa-book-open mr-1.5"></i>50題考點自學複習
-                </button>
-                <button onclick="switchTab('sdd')" id="btn-tab-sdd" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all text-white hover:bg-white/10">
-                    <i class="fa-solid fa-file-code mr-1.5"></i>SDD 2.0 規格書
-                </button>
-            </nav>
-        </div>
-    </header>
-
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6">
-
-        <section id="sect-reviewer" class="space-y-6">
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div class="space-y-1">
-                        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">複習進度里程碑</span>
-                        <h3 class="text-xl font-extrabold text-slate-800" id="lbl-global-progress">0% <span class="text-xs font-normal text-slate-500">(0 / 50 題)</span></h3>
-                        <div class="w-48 bg-slate-100 h-2 rounded-full overflow-hidden mt-1">
-                            <div id="bar-global-progress" class="bg-brand-600 h-full transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                    </div>
-                    <div class="h-12 w-12 bg-green-50 rounded-xl flex items-center justify-center text-brand-600 shrink-0">
-                        <i class="fa-solid fa-circle-check text-2xl"></i>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div class="space-y-1">
-                        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">答對率與熟練度</span>
-                        <h3 class="text-xl font-extrabold text-slate-800" id="lbl-quiz-accuracy">尚未測試</h3>
-                        <p class="text-[10px] text-slate-400">記錄各考題小試身手挑戰之成效</p>
-                    </div>
-                    <div class="h-12 w-12 bg-sky-50 rounded-xl flex items-center justify-center text-academic-600 shrink-0">
-                        <i class="fa-solid fa-circle-question text-2xl"></i>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div class="space-y-1">
-                        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">黃金複習進度建議</span>
-                        <h3 class="text-xl font-extrabold text-indigo-600" id="lbl-weekly-status">自由篩選模式</h3>
-                        <p class="text-[10px] text-slate-400" id="lbl-weekly-target">可點選下方 12 週計畫卡片連動</p>
-                    </div>
-                    <div class="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
-                        <i class="fa-solid fa-calendar-days text-2xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-chart-simple text-academic-600"></i>
-                        當前檢索與篩選考題結構統計 (100% 原生流動 SVG 繪圖)
-                    </h3>
-                    <button onclick="resetFilters()" class="text-xs text-academic-600 hover:text-academic-700 font-bold">清除所有條件</button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center">
-                        <span class="text-xs font-bold text-slate-500 mb-2">學科占比比例</span>
-                        <div class="relative w-full h-28 flex items-center justify-center">
-                            <svg id="svg-subj-chart" viewBox="0 0 100 100" class="w-24 h-24 transform -rotate-90"></svg>
-                            <div id="svg-subj-legend" class="absolute inset-y-0 right-2 flex flex-col justify-center text-[9px] gap-1 pl-2"></div>
-                        </div>
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col justify-center space-y-2">
-                        <span class="text-xs font-bold text-slate-500 text-center block mb-1">難易度分布狀態</span>
-                        <div class="space-y-2" id="div-diff-chart"></div>
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col justify-center space-y-2">
-                        <span class="text-xs font-bold text-slate-500 text-center block mb-1">會考題型結構比</span>
-                        <div class="space-y-2" id="div-type-chart"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-                <h4 class="text-xs font-bold text-slate-600 uppercase tracking-widest flex items-center gap-1.5">
-                    <i class="fa-solid fa-map-location-dot text-indigo-500 animate-pulse"></i> 12週黃金會考複習推薦地圖 (點選自動篩選載入題目)
-                </h4>
-                <div class="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-12 gap-2" id="grid-weeks"></div>
-            </div>
-
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
-                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-filter text-academic-600"></i>
-                        V2.0 智慧多維度篩選器
-                    </h3>
-                    <div class="relative w-full md:w-80">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="inp-search" oninput="applyFilters()" placeholder="搜尋關鍵字、概念或課綱代碼..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-academic-600 focus:outline-none">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    <div>
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1 uppercase">科目分流</label>
-                        <select id="sel-subject" onchange="applyFilters()" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-700 font-bold">
-                            <option value="all">🔍 全部科目</option>
-                            <option value="生物">🌿 生物學科</option>
-                            <option value="理化-物理">⚡ 理化-物理</option>
-                            <option value="理化-化學">🧪 理化-化學</option>
-                            <option value="地球科學">🌍 地球科學</option>
-                            <option value="跨科主題">🔗 跨科主題</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1 uppercase">課綱冊別</label>
-                        <select id="sel-book" onchange="applyFilters()" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-700 font-bold">
-                            <option value="all">🔍 全部冊別</option>
-                            <option value="1">📘 第一冊 (生)</option>
-                            <option value="2">📘 第二冊 (生)</option>
-                            <option value="3">📙 第三冊 (理)</option>
-                            <option value="4">📙 第四冊 (理)</option>
-                            <option value="5">📕 第五冊 (理/地)</option>
-                            <option value="6">📕 第六冊 (理/地/跨)</option>
-                            <option value="0">📗 跨科/探實</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1 uppercase">題型分類</label>
-                        <select id="sel-type" onchange="applyFilters()" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-700 font-bold">
-                            <option value="all">🔍 全部題型</option>
-                            <option value="知識記憶">知識記憶</option>
-                            <option value="圖表判讀">圖表判讀</option>
-                            <option value="實驗探究">實驗探究</option>
-                            <option value="生活情境">生活情境</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1 uppercase">難易程度</label>
-                        <select id="sel-difficulty" onchange="applyFilters()" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-700 font-bold">
-                            <option value="all">🔍 全部難度</option>
-                            <option value="易">🟢 易 (基礎)</option>
-                            <option value="中">🟡 中 (應用)</option>
-                            <option value="難">🔴 難 (推理)</option>
-                        </select>
-                    </div>
-                    <div class="col-span-2 md:col-span-1">
-                        <label class="block text-[10px] text-slate-400 font-bold mb-1 uppercase">108 學習表現</label>
-                        <select id="sel-curriculum" onchange="applyFilters()" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-700 font-bold">
-                            <option value="all">🔍 全部表現</option>
-                            <option value="po-Ⅳ-1">po-Ⅳ-1 圖表發現規律</option>
-                            <option value="ah-Ⅳ-1">ah-Ⅳ-1 因果關係</option>
-                            <option value="ah-Ⅳ-2">ah-Ⅳ-2 應用推論解釋</option>
-                            <option value="tr-Ⅳ-1">tr-Ⅳ-1 設計實驗步驟</option>
-                            <option value="pe-Ⅳ-2">pe-Ⅳ-2 歸納數據論證</option>
-                            <option value="tm-Ⅳ-2">tm-Ⅳ-2 真實生活應用</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <div class="lg:col-span-5 space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar" id="div-question-list"></div>
-
-                <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm sticky top-24" id="div-detail-panel">
-                    <div class="text-center py-24 text-slate-400" id="div-placeholder">
-                        <i class="fa-solid fa-compass-drafting text-6xl text-slate-200 animate-bounce mb-4"></i>
-                        <h4 class="font-bold text-slate-600 text-base">請點選左側試題卡片開始複習</h4>
-                        <p class="text-xs mt-2 text-slate-400 max-w-sm mx-auto">點選特定題目可展開 108 課綱學習表現對齊、精細詳解、易錯概念防禦，並可同步勾選「已複習」儲存進度。</p>
-                    </div>
-
-                    <div class="hidden space-y-6" id="div-detail-content">
-                        <div class="flex justify-between items-start border-b border-slate-100 pb-4">
-                            <div>
-                                <div class="flex flex-wrap gap-1.5 mb-2" id="detail-badge-group"></div>
-                                <h3 class="text-lg font-black text-slate-800" id="detail-title">第 1 題</h3>
-                            </div>
-                            <div class="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl">
-                                <input type="checkbox" id="chk-completed" onchange="toggleCompletedState()" class="h-4 w-4 text-brand-600 rounded focus:ring-brand-500 cursor-pointer">
-                                <label for="chk-completed" class="text-xs font-bold text-slate-600 cursor-pointer">標記為已複習</label>
-                            </div>
-                        </div>
-
-                        <div class="bg-academic-50/50 p-4 rounded-xl border border-academic-100/60 space-y-2">
-                            <h4 class="text-xs font-bold text-academic-800 flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-question text-academic-600"></i> 會考真題情境
-                            </h4>
-                            <p class="text-xs md:text-sm text-slate-700 font-medium leading-relaxed" id="detail-brief"></p>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                <span class="text-[10px] text-slate-400 font-bold block mb-0.5">對應冊別與單元</span>
-                                <span class="text-xs font-black text-slate-700" id="detail-chapter">單元名稱</span>
-                            </div>
-                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                <span class="text-[10px] text-slate-400 font-bold block mb-0.5">核心考察概念</span>
-                                <span class="text-xs font-black text-slate-700" id="detail-concept">核心概念</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-purple-50/40 border-l-4 border-purple-500 p-4 rounded-r-xl space-y-1">
-                            <span class="text-[10px] text-purple-700 font-extrabold uppercase tracking-wider block">對應 108 課綱自然科學學習表現</span>
-                            <span class="text-xs font-black text-slate-800 block" id="detail-curr-code"></span>
-                            <p class="text-[11px] text-slate-500 leading-relaxed" id="detail-curr-desc"></p>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div class="border border-slate-100 rounded-xl overflow-hidden shadow-sm">
-                                <div class="bg-academic-700 text-white px-4 py-2 flex items-center justify-between">
-                                    <span class="text-xs font-bold"><i class="fa-solid fa-wand-magic-sparkles mr-1 text-amber-300"></i>考點解析與精準詳解</span>
-                                    <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">考評總監親撰</span>
-                                </div>
-                                <div class="p-4 bg-white text-xs md:text-sm text-slate-600 leading-relaxed space-y-2" id="detail-explanation"></div>
-                            </div>
-                            <div class="border border-rose-100 rounded-xl overflow-hidden shadow-sm">
-                                <div class="bg-rose-600 text-white px-4 py-2 flex items-center justify-between">
-                                    <span class="text-xs font-bold"><i class="fa-solid fa-shield-halved mr-1 text-amber-200 animate-pulse"></i>學生易錯核心概念防禦</span>
-                                    <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">盲點防禦線</span>
-                                </div>
-                                <div class="p-4 bg-rose-50/40 text-xs text-rose-800 leading-relaxed" id="detail-misconception"></div>
-                            </div>
-                        </div>
-
-                        <div class="bg-amber-50/30 border border-amber-200/50 p-4 rounded-xl space-y-3">
-                            <div class="flex items-center gap-2">
-                                <div class="h-6 w-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-black">評</div>
-                                <h4 class="text-xs font-bold text-slate-800">觀念小試身手挑戰</h4>
-                            </div>
-                            <p class="text-xs font-semibold text-slate-600" id="detail-quiz-question"></p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2" id="detail-quiz-options"></div>
-                            <div id="detail-quiz-feedback" class="hidden p-3 rounded-xl text-xs font-bold transition-all duration-300"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl border border-slate-800 shadow-lg space-y-4">
-                <div class="flex items-center gap-3">
-                    <div class="h-10 w-10 bg-red-600 rounded-xl flex items-center justify-center text-white text-xl">
-                        <i class="fa-brands fa-youtube"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-white">115會考自然科命題趨勢與理化複習輔助</h3>
-                        <p class="text-[11px] text-slate-400">推薦與線上考題複習搭配之專業影音解說，加深理解力</p>
-                    </div>
-                </div>
-                <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 text-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <p class="text-slate-400 leading-relaxed max-w-xl">
-                        為了對近年物理考題（如自由落體、作用力、浮力與延長線用電安全等）有更系統化的掌握，推薦觀看【115會考】從114會考分析命題趨勢_自然（物理部分）。
-                    </p>
-                    <a href="https://www.youtube.com/watch?v=NooBr4AQoY0" target="_blank" class="px-4 py-2 bg-red-600 hover:bg-red-700 transition text-white font-bold rounded-xl text-xs flex items-center gap-1 shrink-0 shadow-md">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟 YouTube 影音分析
-                    </a>
-                </div>
-            </div>
-
-        </section>
-
-        <section id="sect-sdd" class="hidden space-y-6">
-            <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-100 shadow-sm space-y-8">
-                <div class="border-b border-slate-100 pb-5">
-                    <span class="text-xs font-bold text-academic-600 uppercase tracking-widest block mb-1">
-                        <i class="fa-solid fa-laptop-code"></i> System Design Document (SDD) V2.0
-                    </span>
-                    <h2 class="text-xl md:text-2xl font-bold text-slate-800">115會考自然科線上複習與試題分析平台 V2.0：系統設計規格書</h2>
-                    <p class="text-xs text-slate-400 mt-1">Version 2.0 • 國中自然會考 50 題結構化大數據自學系統</p>
-                </div>
-                <div class="space-y-3">
-                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                        <span class="h-5 w-5 bg-academic-100 text-academic-700 rounded-full inline-flex items-center justify-center text-xs font-bold">1</span>
-                        系統概述與核心價值
-                    </h3>
-                    <p class="text-xs md:text-sm text-slate-500 leading-relaxed">
-                        本 V2.0 系統特別針對「115會考自然科試卷（<code>115P_Nature.pdf</code>）」的 50 題特徵，結合國中自然科學 108 領綱設計而成。系統運用<strong>原生動態 SVG 與 CSS 演算</strong>繪製圖表，並搭載 <code>KaTeX</code> 渲染美化數理公式，保證 100% 開啟與操作不卡頓。
-                    </p>
-                </div>
-                <div class="space-y-4">
-                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                        <span class="h-5 w-5 bg-academic-100 text-academic-700 rounded-full inline-flex items-center justify-center text-xs font-bold">2</span>
-                        多維度篩選與 LocalStorage 資料流設計
-                    </h3>
-                    <p class="text-xs text-slate-500">系統進度追蹤模組利用瀏覽器 <code>localStorage</code>，在前端進行實時的進度保存。資料流邏輯如下：</p>
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 overflow-x-auto text-[11px] font-mono text-slate-600 leading-relaxed">
-1. 學生點選題目，勾選「標記為已複習」
-   ➔ 觸存事件 ➔ localStorage.setItem('115_nature_v2_completed', JSON.stringify(completedSet))
-   ➔ 調用 updateProgressGauges() 重新渲染頂部進度條與 SVG 學科分布圓環。
-2. 學生在「小試身手挑戰」選擇答案
-   ➔ 判斷對錯 ➔ 若為首次作答，存入 localStorage.setItem('115_nature_v2_scores', JSON.stringify(scoreMap))
-   ➔ 調用 updateProgressGauges() 更新整體答對率計量。
-                    </div>
-                </div>
-                <div class="space-y-4">
-                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                        <span class="h-5 w-5 bg-academic-100 text-academic-700 rounded-full inline-flex items-center justify-center text-xs font-bold">3</span>
-                        50 題全量 JSON 數據庫規格定義 (JSON Schema)
-                    </h3>
-                    <div class="bg-slate-900 text-amber-300 p-4 rounded-xl font-mono text-[10px] md:text-xs overflow-x-auto leading-relaxed shadow-inner">
-{
-  "id": "115_N_01",
-  "number": 1,
-  "subject": "地球科學",
-  "book": 5,
-  "chapter": "宇宙與天體",
-  "concept": "光年與距離單位",
-  "curriculumCode": "ah-Ⅳ-2",
-  "type": "知識記憶",
-  "difficulty": "易",
-  "brief": "科學家發現距離地球10光年的恆星...",
-  "detailedExplanation": "光年為「距離」單位而非時間...",
-  "commonMisconception": "易將光年誤認成時間單位...",
-  "quiz": {
-    "text": "此時天體大爆炸，地球上最快何時觀測到？",
-    "options": [
-      { "text": "2036年", "isCorrect": true, "desc": "正解..." }
-    ]
+// --- 模擬題庫資料庫 (JSON Schema) ---
+const questionsDatabase = [
+  {
+    question_id: "Q1",
+    subject: "生物",
+    volume_chapter: "第一冊-細胞的構造與功能",
+    concept: "植物細胞與動物細胞的差異",
+    learning_performance: "INb-IV-2 細胞的構造與功能",
+    question_type: "單一知識題",
+    difficulty: "基礎",
+    content: "小明在顯微鏡下觀察某種細胞，發現該細胞具有細胞壁、葉綠體以及大型液泡。請問此細胞最可能取自下列何者？",
+    image_url: "",
+    options: ["(A) 人的口腔皮膜", "(B) 榕樹的葉肉", "(C) 貓的肌肉", "(D) 台灣獼猴的血液"],
+    answer: "(B)",
+    explanation: "細胞壁、葉綠體與大型液泡為植物細胞的典型特徵。選項中僅有榕樹（B）為植物。",
+    misconception: "學生可能混淆動植物細胞的共同特徵（如細胞膜、細胞質、細胞核）與植物獨有特徵。"
+  },
+  {
+    question_id: "Q46",
+    subject: "理化-物理",
+    volume_chapter: "第五冊-力與運動",
+    concept: "自由落體運動、控制變因",
+    learning_performance: "pe-IV-1 能理解科學探究過程並設計簡單實驗",
+    question_type: "實驗探究題",
+    difficulty: "中等",
+    content: "科學家想要觀察水滴以不同的速度，衝擊石英板時的變化情形，若不考慮空氣阻力，則他調整下列哪一項實驗條件最合理？",
+    image_url: "圖(三十)實驗裝置與圖(三十一)數據圖",
+    options: [
+      "(A) 調整水滴的溫度，以改變水滴的密度",
+      "(B) 調整針頭的孔徑，以改變水滴的直徑與重量",
+      "(C) 調整針頭的高度，以改變水滴落下的垂直距離",
+      "(D) 調整攝影機的設定，以改變攝影機每秒拍攝畫面的張數"
+    ],
+    answer: "(C)",
+    explanation: "依據自由落體公式，物體落下的終端速度僅與「重力加速度」及「落下的垂直距離（高度）」有關。因此要改變水滴衝擊時的速度，最合理的方法是改變針頭高度。",
+    misconception: "日常經驗會直覺認為「越重的東西掉下來越快」，但忽略在不考慮空氣阻力的情況下，重力加速度對所有質量的物體皆相同，質量大小不影響落地速度。"
+  },
+  {
+    question_id: "Q47",
+    subject: "理化-物理",
+    volume_chapter: "第五冊-力與運動",
+    concept: "作用力與反作用力",
+    learning_performance: "INc-IV-3 牛頓第三運動定律",
+    question_type: "圖表分析題",
+    difficulty: "進階",
+    content: "根據本文，已知石英板作用在水滴的力為F'，F'即F的反作用力，則圖(三十一)中呈現的四個狀態，哪一個狀態下F'的大小最大？",
+    image_url: "圖(三十一)數據圖的四個狀態",
+    options: [
+      "(A) 狀態一", 
+      "(B) 狀態二", 
+      "(C) 狀態三", 
+      "(D) 狀態四"
+    ],
+    answer: "(C)",
+    explanation: "根據牛頓第三運動定律，作用力與反作用力大小相等、方向相反（F = -F'）。因此要尋找 F' 最大的狀態，即是從圖表中尋找縱坐標 F(N) 數值最大（波峰）的時刻。",
+    misconception: "容易無法將文字敘述的「反作用力」與圖表中的「作用力 F」建立大小相等的連結，或是看不懂數據圖中縱坐標代表的意義。"
   }
-}
-                    </div>
-                </div>
-            </div>
+];
+
+export default function App() {
+  const [activeStage, setActiveStage] = useState(0); // 0: 自訂, 1-4: 階段
+  const [filters, setFilters] = useState({ subject: '', difficulty: '', type: '' });
+  const [expandedCards, setExpandedCards] = useState({});
+
+  // 處理階段按鈕點擊，自動帶入預設篩選條件
+  const handleStageClick = (stageNum) => {
+    setActiveStage(stageNum);
+    switch(stageNum) {
+      case 1:
+        setFilters({ subject: '', difficulty: '基礎', type: '單一知識題' });
+        break;
+      case 2:
+        setFilters({ subject: '', difficulty: '', type: '實驗探究題' }); // 簡化為一種，實務上可包含圖表
+        break;
+      case 3:
+        setFilters({ subject: '', difficulty: '中等', type: '' }); // 模擬弱點突破
+        break;
+      case 4:
+        setFilters({ subject: '', difficulty: '進階', type: '' });
+        break;
+      default:
+        setFilters({ subject: '', difficulty: '', type: '' });
+    }
+  };
+
+  const handleFilterChange = (key, value) => {
+    setActiveStage(0); // 切換回自訂模式
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const toggleExplanation = (id) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  // 根據條件過濾題目
+  const filteredQuestions = useMemo(() => {
+    return questionsDatabase.filter(q => {
+      const matchSubject = filters.subject ? q.subject.includes(filters.subject) : true;
+      const matchDifficulty = filters.difficulty ? q.difficulty === filters.difficulty : true;
+      // 階段二特殊處理：包含實驗或圖表
+      const matchType = filters.type 
+        ? (activeStage === 2 ? (q.question_type === '實驗探究題' || q.question_type === '圖表分析題') : q.question_type === filters.type) 
+        : true;
+      return matchSubject && matchDifficulty && matchType;
+    });
+  }, [filters, activeStage]);
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-4 md:p-8">
+      
+      {/* Header */}
+      <header className="max-w-5xl mx-auto mb-8 text-center md:text-left flex flex-col md:flex-row items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-indigo-700 flex items-center gap-2 justify-center md:justify-start">
+            <BrainCircuit className="w-8 h-8" />
+            115會考自然科 線上複習系統
+          </h1>
+          <p className="text-slate-500 mt-2">結合 108 課綱與精準篩選的數位化題庫</p>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto space-y-6">
+        
+        {/* 階段進度導航模組 */}
+        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+          <h2 className="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2">
+            <Target className="w-5 h-5 text-indigo-500" />
+            系統建議複習進度 (點擊套用策略)
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            {[
+              { id: 1, title: '階段一：基礎檢視', desc: '基礎難度/單一知識題' },
+              { id: 2, title: '階段二：素養特訓', desc: '圖表分析/實驗探究題' },
+              { id: 3, title: '階段三：弱點突破', desc: '中等難度/易錯概念' },
+              { id: 4, title: '階段四：進階挑戰', desc: '進階難度/跨科題組' }
+            ].map(stage => (
+              <button
+                key={stage.id}
+                onClick={() => handleStageClick(stage.id)}
+                className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 ${
+                  activeStage === stage.id 
+                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700' 
+                    : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-indigo-300 hover:bg-white'
+                }`}
+              >
+                <span className="font-bold">{stage.title}</span>
+                <span className="text-xs mt-1 opacity-80">{stage.desc}</span>
+              </button>
+            ))}
+          </div>
         </section>
 
-    </main>
+        {/* 自訂篩選列 */}
+        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-wrap gap-4 items-center">
+          <div className="flex items-center gap-2 text-slate-700 font-medium">
+            <Filter className="w-5 h-5" /> 自訂篩選：
+          </div>
+          
+          <select 
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+            value={filters.subject}
+            onChange={(e) => handleFilterChange('subject', e.target.value)}
+          >
+            <option value="">所有科目</option>
+            <option value="生物">生物</option>
+            <option value="理化-物理">理化-物理</option>
+            <option value="理化-化學">理化-化學</option>
+            <option value="地球科學">地球科學</option>
+          </select>
 
-    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-xs mt-auto border-t border-slate-800">
-        <p>115年國中教育會考自然科線上複習與試題分析平台 V2.0 • 純前端無依賴高效架構</p>
-        <p class="text-slate-600 mt-1">本平台試卷特徵源於 115P_Nature.pdf；課綱表現代號對應於 108 課綱自然科學領域學習表現指標標準。</p>
-    </footer>
+          <select 
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+            value={filters.difficulty}
+            onChange={(e) => handleFilterChange('difficulty', e.target.value)}
+          >
+            <option value="">所有難度</option>
+            <option value="基礎">基礎</option>
+            <option value="中等">中等</option>
+            <option value="進階">進階</option>
+          </select>
 
-    <script>
-        const questionDatabase = [
-            { id: "115_N_01", number: 1, subject: "地球科學", book: 5, chapter: "宇宙與天體", concept: "光年與觀測時間差", curriculumCode: "ah-Ⅳ-2", curriculumDesc: "應用科學推論與建立模型，理解天體距離與觀測時間之關聯。", type: "知識記憶", difficulty: "易", brief: "科學家發現距離地球 $10$ 光年的某顆恆星，有關該恆星與所發射光線的觀測，下列何者正確？", detailedExplanation: "「光年」是距離單位，而非時間單位。1光年代表光在真空中前進一年的距離。是以，觀測距離地球 $10$ 光年的恆星，星光從恆星傳播到地球需要 $10$ 年。因此，我們現在觀測到的星光，實際上是該恆星在 $10$ 年前所發出的光線。", commonMisconception: "極易將光年混淆為「時間」單位，或誤以為需要將 10 乘以光速做繁複的計算。看到「10光年」，直覺對應「10年前的舊照片」即可。", quiz: { text: "若該恆星在地球時間2026年突然爆發，最快何時能被觀測？", options: [{ text: "2026年當下", isCorrect: false, desc: "光傳播仍需時間。" }, { text: "2036年", isCorrect: true, desc: "沒錯！2026 + 10 = 2036年。" }, { text: "2046年", isCorrect: false, desc: "不需將時間乘以二。" }] } },
-            { id: "115_N_02", number: 2, subject: "生物", book: 1, chapter: "細胞的結構與功能", concept: "擴散作用與膜之通透性", curriculumCode: "po-Ⅳ-1", curriculumDesc: "能從觀察中，察覺問題，並能從圖表、數據等發現規律性與其關聯性。", type: "圖表判讀", difficulty: "易", brief: "關於細胞膜對各類物質進出的控制，以及擴散作用在細胞內外的通透性，下列何者正確？", detailedExplanation: "細胞膜具有選擇通透性，小分子（如水、氧氣、二氧化碳）及脂溶性物質可直接通過雙層磷脂質；而大分子或帶電荷離子（如葡萄糖、鈉離子）必須藉由細胞膜上特殊蛋白質（通道蛋白或載體蛋白）輔助方能進出細胞。", commonMisconception: "容易誤以為水分子大到無法通過，或誤認所有小分子進出細胞皆不需要蛋白質的協助。細胞膜不是一般的篩網，而是有選擇活性的構造。", quiz: { text: "下列何種物質可直接穿過磷脂質雙分子層進出細胞？", options: [{ text: "葡萄糖", isCorrect: false, desc: "需特殊蛋白質協助。" }, { text: "二氧化碳（CO₂）", isCorrect: true, desc: "答對！氣體小分子可直接藉由簡單擴散進出。" }, { text: "蛋白質大分子", isCorrect: false, desc: "蛋白質太大，需透過特殊方式進出。" }] } },
-            { id: "115_N_03", number: 3, subject: "理化-化學", book: 3, chapter: "物質的組成與反應", concept: "分子式與化學式表示法", curriculumCode: "po-Ⅳ-1", curriculumDesc: "能從圖表中發現原子與分子的定量關係，並建立物質模型。", type: "知識記憶", difficulty: "易", brief: "下圖為某純物質之分子模型，若白色球代表氫原子、黑色球代表碳原子，關於其化學式寫法何者正確？", detailedExplanation: "一個分子中的原子組成結構決定其分子式。例如，若一個分子模型中含有兩個碳原子與六個氫原子，則其分子式寫法應為乙烷（$C_2H_6$）。以此類推分子與原子的數量比例。", commonMisconception: "容易將分子個數（前面係數）與分子內的原子個數（右下角標）混淆。右下角標代表單個分子內的原子結合比例。", quiz: { text: "化學式 $2\\ H_2O$ 代表何種科學意涵？", options: [{ text: "4個水分子", isCorrect: false, desc: "前面係數為2，代表2個水分子。" }, { text: "2個水分子，共含有4個氫原子與2個氧原子", isCorrect: true, desc: "正確！係數 2 乘以水分子組成。" }, { text: "水溶液中有4個水離子", isCorrect: false, desc: "水是共價分子，在一般狀態不解離成水離子。" }] } },
-            { id: "115_N_04", number: 4, subject: "生物", book: 2, chapter: "生物的協調作用", concept: "植物的向光性與生長素", curriculumCode: "ah-Ⅳ-2", curriculumDesc: "應用科學知識解釋植物不對稱生長產生的向光彎曲現象。", type: "知識記憶", difficulty: "易", brief: "將一盆植物幼苗放在單側受光處，過幾天後幼苗會朝向光線方向彎曲生長。此不對稱生長之主因為何？", detailedExplanation: "植物向光性是由生長素（Auxin）的分佈不均造成的。單側受光會導致生長素向背光側轉移，因此背光側的生長素濃度較高，促使背光側細胞快速伸長、生長速度快於向光側，進而造成幼苗向光彎曲生長。", commonMisconception: "誤以為「光線直接促進生長素產生」，導致向光側生長較快。事實上是「光線使生長素避開，集中在背光側」，背光側伸長速度快才造成彎曲。", quiz: { text: "在植物幼嫩的莖中，生長素濃度較高的一側會：", options: [{ text: "抑制生長", isCorrect: false, desc: "在莖中，高濃度生長素是促進細胞伸長生長。" }, { text: "促進生長，使細胞伸長", isCorrect: true, desc: "沒錯！背光側生長素濃度高、伸長快，進而向光彎曲。" }, { text: "使植物迅速枯萎", isCorrect: false, desc: "適量生長素是植物正常生長所需。" }] } },
-            { id: "115_N_05", number: 5, subject: "生物", book: 1, chapter: "生物的營養與能量", concept: "光合作用的兩大階段", curriculumCode: "ah-Ⅳ-1", curriculumDesc: "能辨識並建立光反應與碳反應的物質因果關係與模型。", type: "圖表判讀", difficulty: "易", brief: "綠色植物進行光合作用包括光反應與碳（暗）反應。關於這兩大階段之反應位置、原料及產物關係，何者正確？", detailedExplanation: "光反應在葉綠體的「類囊體（葉綠餅）」進行，利用光能將水（$H_2O$）分解釋放出氧氣（$O_2$），並產生能量。碳反應在「基質」進行，利用光反應產生的能量，將二氧化碳（$CO_2$）轉化合成水與葡萄糖。", commonMisconception: "常誤以為「碳（暗）反應只能在晚上進行」。其實碳反應不需要光，但隨時都需要光反應產生的能量（ATP與NADPH），因此在白天也會與光反應同步進行。", quiz: { text: "光合作用中，「水（$H_2O$）」是在哪一個階段被分解，並釋放出何種氣體？", options: [{ text: "光反應，釋放氧氣（$O_2$）", isCorrect: true, desc: "沒錯！光能分解水，並放出氧氣。" }, { text: "碳反應，釋放二氧化碳", isCorrect: false, desc: "二氧化碳是碳反應的原料，而非產物。" }, { text: "光反應，釋放二氧化碳", isCorrect: false, desc: "光反應不消耗也不釋放二氧化碳。" }] } },
-            { id: "115_N_06", number: 6, subject: "理化-物理", book: 3, chapter: "光、聲音與溫度", concept: "光的反射與折射定律", curriculumCode: "po-Ⅳ-1", curriculumDesc: "能從偏折圖中發現折射角與入射角、介質密度的關聯性。", type: "圖表判讀", difficulty: "易", brief: "一束光線由空氣（快介質）斜射入水中（慢介質），其光線偏折的路徑符合下列何者？", detailedExplanation: "光從傳播速度快的介質斜射入速度慢的介質時（如空氣到水），光線會向法線偏折，此時入射角大於折射角（折射線偏向法線）。反之，由慢介質到快介質則偏離法線，折射角大於入射角。", commonMisconception: "計算角度時，常將「折射角」或「入射角」誤算為「光線與介質界面的夾角」。記住：入射角、反射角與折射角，一律是「光線與法線」的夾角！", quiz: { text: "當光從水（慢）垂直射入空氣（快）時，偏折角度與折射角為：", options: [{ text: "不偏折，入射角與折射角皆為0度", isCorrect: true, desc: "正確！垂直入射（入射角=0）不偏折，角度均為0度。" }, { text: "向法線偏折，折射角小於入射角", isCorrect: false, desc: "垂直入射時並不會發生角度偏折。" }, { text: "偏離法線，折射角大於入射角", isCorrect: false, desc: "只有斜射時才會偏離法線。" }] } },
-            { id: "115_N_07", number: 7, subject: "生物", book: 2, chapter: "生殖與遺傳", concept: "減數分裂與染色體套數", curriculumCode: "ah-Ⅳ-2", curriculumDesc: "能應用科學推論，判斷同源染色體在減數分裂不同階段之套數變化。", type: "圖表判讀", difficulty: "中", brief: "某生物體細胞含有 $2$ 對染色體（$2n = 4$），關於該細胞在產生配子時進行減數分裂的過程與染色體套數變化何者正確？", detailedExplanation: "減數分裂包括兩次分裂：第一次分裂為「同源染色體分離」，套數由 $2n \\to n$，此時染色體套數減半，但染色體仍含有雙股（姊妹染色分體）；第二次分裂為「姊妹染色分體分離」，細胞套數不變依舊為 $n$。最終產生 $4$ 個單套染色體配子。", commonMisconception: "容易搞混「同源染色體分離」與「姊妹染色分體分離」的發生順序。第一次分裂分離同源，才是基因減半、套數減半的關鍵步驟。", quiz: { text: "某生物體細胞染色體有23對（$2n = 46$），經減數分裂產生的精子，其染色體數目與套數為：", options: [{ text: "23對，雙套（2n）", isCorrect: false, desc: "精子為配子，必須是單套。" }, { text: "23條，單套（n）", isCorrect: true, desc: "沒錯！23條、單套（n）。" }, { text: "46條，單套（n）", isCorrect: false, desc: "46條是體細胞的數目。" }] } },
-            { id: "115_N_08", number: 8, subject: "地球科學", book: 5, chapter: "地球的變動與構造", concept: "地震波與國家級警報時差", curriculumCode: "tm-Ⅳ-2", curriculumDesc: "能理解地震波波速物理性質，並將其應用於解釋生活災害警報之時差。", type: "生活情境", difficulty: "中", brief: "時事熱點：國家級地震警報簡訊常在強震波抵達前顯示預估秒數（例如「13秒後地震抵達」）。此預警系統主要仰賴何種物理性質的差異？", detailedExplanation: "地震波分為 $P$ 波（傳播速度較快，約 $5 \\sim 6\\ km/s$，但破壞力小）與 $S$ 波（傳播速度較慢，約 $3 \\sim 4\\ km/s$，但破壞力強）。預警系統在震央附近感測到快速抵達的 $P$ 波後，立刻以電磁波（光速 $3 \\times 10^5\\ km/s$）將警報簡訊發送至遠處，搶在慢速但強大的 $S$ 波抵達之前，為大眾創造黃金避難秒數。", commonMisconception: "常誤以為警報是「預測地震即將發生」。事實上，地震已經在震央發生，系統只是利用電波速度與地震波速之極大差異，搶在強震動抵達前警告我們。", quiz: { text: "地震發生時，最先抵達地表的波與主要造成劇烈破壞的波依序為：", options: [{ text: "P波、S波", isCorrect: true, desc: "沒錯！P波最快（最先抵達）；S波較慢但破壞力最強。" }, { text: "S波、P波", isCorrect: false, desc: "S波傳播速度較慢。" }, { text: "電磁波、機械波", isCorrect: false, desc: "地震產生的是機械波，不包含電磁波。" }] } },
-            { id: "115_N_09", number: 9, subject: "理化-化學", book: 3, chapter: "物質的反應與水溶液", concept: "溶解度與飽和水溶液", curriculumCode: "pe-Ⅳ-2", curriculumDesc: "能根據不同溫度之溶解度曲線進行數據分析，算出降溫析出晶體質量。", type: "圖表判讀", difficulty: "中", brief: "下表為某固體物質在不同溫度下對 $100\\ g$ 水的溶解度。若在 $60^\\circ\\text{C}$ 時配製一杯飽和水溶液，將其降溫至 $20^\\circ\\text{C}$，有關析出固體質量的敘述何者正確？", detailedExplanation: "溶解度表示在高溫與低溫下，定量水中能溶解之最大溶質質量。降溫析出量計算公式：$\\text{析出量} = \\text{高溫飽和溶液含溶質} - \\text{低溫時最大能溶溶質}$。計算時必須注意「溶劑（水）」的質量是否為 $100\\ g$，若否，必須按比例換算。", commonMisconception: "容易將「溶液質量（溶質+水）」直接當作「溶劑（水）質量」代入公式，導致計算失準。一定要看清題目給的是水重還是溶液總重。", quiz: { text: "已知某鹽在 $50^\\circ\\text{C}$ 對水溶解度為 $40\\ g / 100\\ g$ 水。若將 $280\\ g$ 飽和溶液降溫，水不變，此溶液中含水：", options: [{ text: "200 g", isCorrect: true, desc: "正確！140 g 飽和溶液含水 100 g，280 g 即含水 200 g。" }, { text: "100 g", isCorrect: false, desc: "280 g 飽和中含有 80 g 溶質與 200 g 水。" }, { text: "280 g", isCorrect: false, desc: "280 g 是溶液總質量。" }] } },
-            { id: "115_N_10", number: 10, subject: "生物", book: 2, chapter: "生物與環境", concept: "食物網與生態系能量流動", curriculumCode: "ah-Ⅳ-1", curriculumDesc: "能辨識生態系食物網中的因果關係，分析能量流遞減與毒素累積效應。", type: "圖表判讀", difficulty: "易", brief: "圖為某生態系中部分生物所組成的食物網。關於此食物網中的能量流動與「能量金字塔」的遞減效應，下列何者正確？", detailedExplanation: "在生態系中，能量流動是單向的。生產者利用光能合成有機物後，能量沿食物鏈傳遞，但每一階層只有約 $10\\%$ 的能量能轉移到下一階層，其餘多以熱能、代謝消耗等形式散失，形成「能量金字塔」；而戴奧辛等難分解毒素則會隨食物鏈逐級向上累積，稱為「生物累積作用（生物放大）」。", commonMisconception: "容易將「能量金字塔（逐級遞減 10%）」與「生物累積作用（毒素逐級累積遞增）」的趨勢方向搞混。能量是傳遞變少，毒物是累積變多。", quiz: { text: "在能量金字塔中，哪一階層所擁有的總能量最多？", options: [{ text: "初級消費者（草食動物）", isCorrect: false, desc: "初級消費者能量少於生產者。" }, { text: "生產者（綠色植物）", isCorrect: true, desc: "沒錯！生產者處於金字塔最底層，總能量最多。" }, { text: "最高級消費者（肉食動物）", isCorrect: false, desc: "最高級消費者能量最少。" }] } },
-            { id: "115_N_11", number: 11, subject: "理化-化學", book: 4, chapter: "進入化學反應", concept: "化學反應速率與催化劑", curriculumCode: "pe-Ⅳ-2", curriculumDesc: "設計實驗分析催化劑對雙氧水分解速率的影響與不改變平衡原理。", type: "實驗探究", difficulty: "中", brief: "在製造氧氣實驗中加入二氧化錳。關於「催化劑」在化學反應中所扮演的角色與反應速率的影響，何者正確？", detailedExplanation: "催化劑（二氧化錳）的作用是「改變反應途徑、降低反應活化能」，進而「加速」反應速率。催化劑在反應前後其質量與化學性質保持不變，且「無法」改變反應的平衡狀態或增加最終產物的產量。", commonMisconception: "常誤以為「催化劑可以讓反應產生更多的氧氣」。催化劑只能加快製造速度，氧氣總量只由反應物（雙氧水）的初質量決定。", quiz: { text: "在雙氧水分解實驗中加入二氧化錳，若雙氧水完全反應，生成的氧氣總量將：", options: [{ text: "變多", isCorrect: false, desc: "二氧化錳不能增加產量。" }, { text: "不變，但釋放速率變快", isCorrect: true, desc: "答對！總量不變，但釋放的速率變快。" }, { text: "變少", isCorrect: false, desc: "二氧化錳並不會消耗產物。" }] } },
-            { id: "115_N_12", number: 12, subject: "理化-物理", book: 4, chapter: "力與運動", concept: "自由落體與重力加速度", curriculumCode: "ah-Ⅳ-2", curriculumDesc: "應用科學知識演繹，推論在不計阻力下輕重物體自由落體的加速度關係。", type: "知識記憶", difficulty: "易", brief: "不計空氣阻力下，將一輕羽毛與一重鐵球由同一高度釋放，關於兩物體自由落體的運動過程何者正確？", detailedExplanation: "在理想無空氣阻力的狀況下，所有物體自
+          <select 
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+            value={filters.type}
+            onChange={(e) => handleFilterChange('type', e.target.value)}
+          >
+            <option value="">所有題型</option>
+            <option value="單一知識題">單一知識題</option>
+            <option value="圖表分析題">圖表分析題</option>
+            <option value="實驗探究題">實驗探究題</option>
+          </select>
+
+          <button 
+            onClick={() => {setActiveStage(0); setFilters({subject:'', difficulty:'', type:''});}}
+            className="text-sm text-indigo-600 hover:text-indigo-800 underline ml-auto md:ml-0"
+          >
+            清除條件
+          </button>
+        </section>
+
+        {/* 題庫展示區 */}
+        <section className="space-y-6 pb-12">
+          {filteredQuestions.length === 0 ? (
+            <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300">
+              <p>目前條件下沒有找到題目，請嘗試調整篩選條件。</p>
+            </div>
+          ) : (
+            filteredQuestions.map((q) => (
+              <div key={q.question_id} className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                {/* 題目頭部標籤 */}
+                <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex flex-wrap gap-2 items-center">
+                  <span className="font-bold text-slate-700 mr-2">題號：{q.question_id}</span>
+                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-md">{q.subject}</span>
+                  <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-md">{q.volume_chapter}</span>
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-md ${
+                    q.difficulty === '基礎' ? 'bg-green-100 text-green-700' :
+                    q.difficulty === '中等' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    難度：{q.difficulty}
+                  </span>
+                  <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-md">{q.question_type}</span>
+                </div>
+
+                {/* 題目主體 */}
+                <div className="p-6">
+                  <p className="text-lg leading-relaxed mb-4 text-slate-800 font-medium">
+                    {q.content}
+                  </p>
+                  
+                  {q.image_url && (
+                    <div className="mb-4 inline-block px-4 py-2 bg-slate-100 border border-slate-300 rounded text-sm text-slate-600">
+                      [圖形參照：{q.image_url}]
+                    </div>
+                  )}
+
+                  <div className="space-y-2 mb-6">
+                    {q.options.map((opt, i) => (
+                      <div key={i} className="p-3 rounded-lg border border-slate-100 bg-slate-50 hover:bg-indigo-50 transition-colors cursor-pointer">
+                        {opt}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* 展開詳解按鈕 */}
+                  <button 
+                    onClick={() => toggleExplanation(q.question_id)}
+                    className="flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-800 transition-colors"
+                  >
+                    {expandedCards[q.question_id] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    {expandedCards[q.question_id] ? "收起解析" : "觀看解析與易錯概念"}
+                  </button>
+
+                  {/* 詳解區塊 */}
+                  {expandedCards[q.question_id] && (
+                    <div className="mt-6 p-5 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-4 animate-in fade-in slide-in-from-top-2">
+                      
+                      <div className="flex gap-3">
+                        <CheckCircle2 className="w-6 h-6 text-emerald-500 shrink-0" />
+                        <div>
+                          <h4 className="font-bold text-slate-700">正確解答：<span className="text-emerald-600 text-lg">{q.answer}</span></h4>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <BookOpen className="w-6 h-6 text-indigo-500 shrink-0" />
+                        <div>
+                          <h4 className="font-bold text-slate-700 mb-1">名師詳解</h4>
+                          <p className="text-slate-600 leading-relaxed">{q.explanation}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <AlertTriangle className="w-6 h-6 text-amber-500 shrink-0" />
+                        <div>
+                          <h4 className="font-bold text-slate-700 mb-1">易錯與迷思概念</h4>
+                          <p className="text-slate-600 leading-relaxed">{q.misconception}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-indigo-200/60 text-sm text-indigo-800/70 flex gap-2">
+                        <span className="font-bold">對應學習表現：</span> {q.learning_performance}
+                      </div>
+
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </section>
+
+      </main>
+    </div>
+  );
+}
