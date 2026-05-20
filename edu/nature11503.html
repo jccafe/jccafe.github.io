@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>115會考自然科線上複習系統</title>
     
-    <!-- 載入 Tailwind CSS 進行美化 (已還原為乾淨網址) -->
+    <!-- 載入 Tailwind CSS 進行美化 -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- 載入 FontAwesome 圖示庫 (已還原為乾淨網址) -->
+    <!-- 載入 FontAwesome 圖示庫 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- 載入 React 與 Babel (已還原為乾淨網址) -->
+    <!-- 載入 React 與 Babel -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin="anonymous"></script>
@@ -36,7 +36,7 @@
                 question_type: "單一知識題",
                 difficulty: "基礎",
                 content: "小明在顯微鏡下觀察某種細胞，發現該細胞具有細胞壁、葉綠體以及大型液泡。請問此細胞最可能取自下列何者？",
-                image_url: "",
+                image_url: "", // 此題無圖，留空
                 options: ["(A) 人的口腔皮膜", "(B) 榕樹的葉肉", "(C) 貓的肌肉", "(D) 台灣獼猴的血液"],
                 answer: "(B)",
                 explanation: "細胞壁、葉綠體與大型液泡為植物細胞的典型特徵。選項中僅有榕樹（B）為植物。",
@@ -51,7 +51,8 @@
                 question_type: "實驗探究題",
                 difficulty: "中等",
                 content: "科學家想要觀察水滴以不同的速度，衝擊石英板時的變化情形，若不考慮空氣阻力，則他調整下列哪一項實驗條件最合理？",
-                image_url: "圖(三十)實驗裝置與圖(三十一)數據圖",
+                // ★ 這裡我先放了一張測試圖片的網址，未來您可以改成自己的圖檔路徑，例如 "./images/q46.png"
+                image_url: "https://placehold.co/600x250/e2e8f0/475569?text=Q46+%E5%AF%A6%E9%A9%97%E8%A3%9D%E7%BD%AE%E8%88%87%E6%95%B8%E6%93%9A%E5%9C%96",
                 options: [
                     "(A) 調整水滴的溫度，以改變水滴的密度",
                     "(B) 調整針頭的孔徑，以改變水滴的直徑與重量",
@@ -71,7 +72,8 @@
                 question_type: "圖表分析題",
                 difficulty: "進階",
                 content: "根據本文，已知石英板作用在水滴的力為F'，F'即F的反作用力，則圖(三十一)中呈現的四個狀態，哪一個狀態下F'的大小最大？",
-                image_url: "圖(三十一)數據圖的四個狀態",
+                // ★ 這裡我先放了一張測試圖片的網址，未來您可以改成自己的圖檔路徑
+                image_url: "https://placehold.co/600x250/e2e8f0/475569?text=Q47+%E6%95%B8%E6%93%9A%E5%9C%96%E7%9A%84%E5%9B%9B%E5%80%8B%E7%8B%80%E6%85%8B",
                 options: [
                     "(A) 狀態一", 
                     "(B) 狀態二", 
@@ -252,9 +254,18 @@
                                                 {q.content}
                                             </p>
                                             
+                                            {/* ★ 這裡是全新的圖片顯示區塊 ★ */}
                                             {q.image_url && (
-                                                <div className="mb-4 inline-block px-4 py-2 bg-slate-100 border border-slate-300 rounded text-sm text-slate-600">
-                                                    <i className="fa-regular fa-image mr-1"></i> [圖形參照：{q.image_url}]
+                                                <div className="mb-6 border-2 border-slate-200 rounded-xl overflow-hidden bg-white max-w-2xl">
+                                                    <img 
+                                                        src={q.image_url} 
+                                                        alt={`第 ${q.question_id} 題圖形`} 
+                                                        className="w-full h-auto object-contain"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null; 
+                                                            e.target.src="https://placehold.co/600x200/fee2e2/991b1b?text=圖片載入失敗，請確認圖片網址是否正確";
+                                                        }}
+                                                    />
                                                 </div>
                                             )}
 
