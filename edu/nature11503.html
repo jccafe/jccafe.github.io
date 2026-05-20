@@ -42,6 +42,31 @@
                 explanation: "細胞壁、葉綠體與大型液泡為植物細胞的典型特徵。選項中僅有榕樹（B）為植物。",
                 misconception: "學生可能混淆動植物細胞的共同特徵（如細胞膜、細胞質、細胞核）與植物獨有特徵。"
             },
+            
+            // ★★★ 題目擴充模板 ★★★
+            // 若要自行新增題目，可以直接複製這一整段 { ... } 進行修改
+            {
+                question_id: "Q2",
+                subject: "地球科學", // 請填寫：生物 / 理化-物理 / 理化-化學 / 地球科學
+                volume_chapter: "第六冊-千變萬化的天氣", 
+                concept: "鋒面與天氣變化",
+                learning_performance: "INd-IV-5 台灣的天氣", // 配合108課綱條目
+                question_type: "圖表分析題", // 單一知識題 / 圖表分析題 / 實驗探究題
+                difficulty: "中等", // 基礎 / 中等 / 進階
+                content: "【這是一道擴充模板題，您可以直接將此處文字替換為真實考題內容】下列哪一種鋒面過境時，最容易出現短暫且劇烈的降雨？",
+                image_url: "https://placehold.co/600x250/e2e8f0/475569?text=Q2+%E8%8B%A5%E7%84%A1%E5%9C%96%E7%89%87%E8%AB%8B%E5%B0%87%E6%AD%A4%E6%AC%84%E4%BD%8D%E7%95%99%E7%A9%BA", 
+                options: [
+                    "(A) 冷鋒",
+                    "(B) 暖鋒",
+                    "(C) 滯留鋒",
+                    "(D) 囚錮鋒"
+                ],
+                answer: "(A)",
+                explanation: "【詳解填寫處】冷鋒為冷空氣主動推擠暖空氣，使暖空氣急速抬升，容易形成積雨雲並伴隨陣雨或雷雨。",
+                misconception: "【易錯概念填寫處】學生容易將「梅雨季的長期降雨（滯留鋒）」與「短暫劇烈降雨（冷鋒）」混淆。"
+            },
+            // ★★★ 擴充模板結束 ★★★
+
             {
                 question_id: "Q46",
                 subject: "理化-物理",
@@ -51,7 +76,6 @@
                 question_type: "實驗探究題",
                 difficulty: "中等",
                 content: "科學家想要觀察水滴以不同的速度，衝擊石英板時的變化情形，若不考慮空氣阻力，則他調整下列哪一項實驗條件最合理？",
-                // ★ 這裡我先放了一張測試圖片的網址，未來您可以改成自己的圖檔路徑，例如 "./images/q46.png"
                 image_url: "https://placehold.co/600x250/e2e8f0/475569?text=Q46+%E5%AF%A6%E9%A9%97%E8%A3%9D%E7%BD%AE%E8%88%87%E6%95%B8%E6%93%9A%E5%9C%96",
                 options: [
                     "(A) 調整水滴的溫度，以改變水滴的密度",
@@ -72,7 +96,6 @@
                 question_type: "圖表分析題",
                 difficulty: "進階",
                 content: "根據本文，已知石英板作用在水滴的力為F'，F'即F的反作用力，則圖(三十一)中呈現的四個狀態，哪一個狀態下F'的大小最大？",
-                // ★ 這裡我先放了一張測試圖片的網址，未來您可以改成自己的圖檔路徑
                 image_url: "https://placehold.co/600x250/e2e8f0/475569?text=Q47+%E6%95%B8%E6%93%9A%E5%9C%96%E7%9A%84%E5%9B%9B%E5%80%8B%E7%8B%80%E6%85%8B",
                 options: [
                     "(A) 狀態一", 
@@ -254,7 +277,7 @@
                                                 {q.content}
                                             </p>
                                             
-                                            {/* ★ 這裡是全新的圖片顯示區塊 ★ */}
+                                            {/* 圖片顯示區塊 */}
                                             {q.image_url && (
                                                 <div className="mb-6 border-2 border-slate-200 rounded-xl overflow-hidden bg-white max-w-2xl">
                                                     <img 
