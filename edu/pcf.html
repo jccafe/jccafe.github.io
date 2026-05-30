@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物理公式動態聯結知識圖譜</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #7dd3fc;
+            --border-color: #334155;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Microsoft JhengHei";
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        /* 圖譜容器 */
+        .graph-container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        /* 節點與樹狀結構核心 CSS */
+        .node {
+            margin: 10px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .node::before {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 15px;
+            width: 10px;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+
+        .node::after {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 0;
+            width: 1px;
+            height: 100%;
+            background-color: var(--border-color);
+        }
+
+        .node:last-child::after {
+            height: 15px;
+        }
+
+        .root-node {
+            padding-left: 0;
+        }
+        .root-node::before, .root-node::after { display: none; }
+
+        /* 展開/折疊按鈕 */
+        .toggle-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--accent-color);
+            background: #24334d;
+        }
+
+        .toggle-btn::before {
+            content: "▶";
+            font-size: 0.7em;
+            transition: transform 0.2s ease;
+            color: var(--accent-color);
+        }
+
+        .expanded > .toggle-btn::before {
+            transform: rotate(90deg);
+        }
+
+        /* 子面板控制 */
+        .children {
+            display: none;
+            padding-left: 15px;
+        }
+
+        .expanded > .children {
+            display: block;
+        }
+
+        /* 公式卡片（可點擊） */
+        .formula-card {
+            background: linear-gradient(135deg, #1e293b, #151f32);
+            border: 1px solid var(--border-color);
+            color: var(--accent-color);
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-block;
+            margin: 5px;
+            font-family: 'Cambria', 'Times New Roman', serif;
+            font-style: italic;
+            font-size: 1.1em;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .formula-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+            color: var(--accent-hover);
+        }
+
+        .bridge-label {
+            font-size: 0.85em;
+            color: #ec4899;
+            background: rgba(236, 72, 153, 0.1);
+            border: 1px solid rgba(236, 72, 153, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+            font-style: normal;
+        }
+
+        /* 彈窗樣式 (Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: var(--text-color);
+        }
+
+        .modal-title {
+            color: var(--accent-color);
+            margin-top: 0;
+            font-size: 1.5em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .modal-formula {
+            font-size: 2em;
+            text-align: center;
+            margin: 20px 0;
+            color: #10b981;
+            font-family: 'Cambria', serif;
+            font-style: italic;
+        }
+
+        .modal-desc {
+            line-height: 1.6;
+            color: var(--text-color);
+        }
+
+        .modal-desc ul {
+            padding-left: 20px;
+            color: var(--text-muted);
+        }
+
+        .modal-desc strong {
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>物理公式動態聯結圖譜</h1>
+    <div class="subtitle">點擊各分類節點可【展開/縮合】，點擊具體公式可【彈出詳細說明】</div>
+
+    <div class="graph-container">
+        <div class="node root-node expanded">
+            <button class="toggle-btn" onclick="toggleNode(this)">核心樞紐：質量 (m)</button>
+            <div class="children">
+                <p style="color: var(--text-muted); font-size: 0.9em; margin: 5px 0 15px 10px;">➔ 由「質量」可一路聯結至力學、運動、能量，再跨界至電學。</p>
+                
+                <div class="node expanded">
+                    <button class="toggle-btn" onclick="toggleNode(this)">牛頓力學與運動學</button>
+                    <div class="children">
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('f_ma')">F = m × a</div>
+                            <span class="bridge-label">聯結：力 (F)</span>
+                            <div class="children" style="display: block; border-left: 1px dashed #ec4899; padding-left: 10px; margin-top: 5px;">
+                                <div class="formula-card" onclick="showModal('f_uN')">f = μ × N</div>
+                                <div class="formula-card" onclick="showModal('w_fs')">W = F × S</div>
+                                <span class="bridge-label">聯結：功/能 (W/E)</span>
+                            </div>
+                        </div>
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('inertia')">當 F = 0 ➔ a = 0</div>
+                            <span class="sub-text">（牛頓第一定律）</span>
+                        </div>
+                        <div class="node">
+                            <button class="toggle-btn" onclick="toggleNode(this)">等加速度運動 (聯結加速度 a)</button>
+                            <div class="children">
+                                <div class="formula-card" onclick="showModal('v_at')">v = a × t</div>
+                                <div class="formula-card" onclick="showModal('v2_v1')">v₂ = v₁ + a × t</div>
+                                <div class="formula-card" onclick="showModal('dx_v1v2')">Δx = ((v₁ + v₂)/2) × t</div>
+                                <div class="formula-card" onclick="showModal('dx_v1t')">Δx = v₁t + 1/2 a t²</div>
+                                <div class="formula-card" onclick="showModal('a_dv')">a = ΔV / Δt</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="node">
+                    <button class="toggle-btn" onclick="toggleNode(this)">功、能量與守恆定律</button>
+                    <div class="children">
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('k_mv')">K = 1/2 m v²</div>
+                            <span class="sub-text">（動能）</span>
+                        </div>
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('u_mgh')">U = m g h (Δx = mgh)</div>
+                            <span class="sub-text">（重力位能）</span>
+                        </div>
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('energy_conserv')">U₁ + K₁ = U₂ + K₂</div>
+                            <span class="sub-text">（力學能守恆 ΔE = 0）</span>
+                        </div>
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('free_fall')">mgh₁ = 1/2 m v₂²</div>
+                            <span class="bridge-label">➔ v = √(2gh₁)</span>
+                        </div>
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('p_power')">P = W / t = F × S / t = F × v</div>
+                            <span class="bridge-label">聯結：功率 (P)</span>
+                            <div class="children" style="display: block; border-left: 1px dashed #10b981; padding-left: 10px; margin-top: 5px;">
+                                <button class="toggle-btn" onclick="toggleNode(this)" style="border-color: #10b981;">⚡ 跨界聯結：電路功率與電阻</button>
+                                <div class="children">
+                                    <div class="formula-card" onclick="showModal('p_vi')">P = V × I = I² × R = V² / R</div>
+                                    <span class="bridge-label">聯結：電壓/電阻</span>
+                                    <div class="node">
+                                        <div class="formula-card" onclick="showModal('ohm')">V = I × R</div>
+                                        <div class="formula-card" onclick="showModal('r_series')">R = R₁ + R₂ (串聯)</div>
+                                        <div class="formula-card" onclick="showModal('r_parallel')">1/R = 1/R₁ + 1/R₂ (並聯)</div>
+                                    </div>
+                                    <div class="node">
+                                        <div class="formula-card" onclick="showModal('w_vit')">W = VQC = VIt = I²Rt = (V²/R)t</div>
+                                        <span class="sub-text">（電功）</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="node">
+                    <button class="toggle-btn" onclick="toggleNode(this)">熱能與質能互換 (m 的直接轉換)</button>
+                    <div class="children">
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('h_msdt')">H = M × S × ΔT</div>
+                            <span class="sub-text">（熱量計算）</span>
+                        </div>
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('cal_joule')">1 卡 = 4.18 焦耳</div>
+                            <span class="sub-text">（熱功當量）</span>
+                        </div>
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('e_mc2')">E = m c²</div>
+                            <span class="sub-text">（愛因斯坦質能互換）</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="node">
+                    <button class="toggle-btn" onclick="toggleNode(this)">壓力與流體力學</button>
+                    <div class="children">
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('p_fa')">P = F / A</div>
+                            <span class="sub-text">（壓力的基本定義）</span>
+                        </div>
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('p_hd')">P = h × d</div>
+                            <span class="sub-text">（靜液壓）</span>
+                        </div>
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('pascal')">F₁ / A₁ = F₂ / A₂</div>
+                            <span class="sub-text">（帕斯卡原理）</span>
+                        </div>
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('buoyancy')">B = V_in × D_fluid</div>
+                            <span class="sub-text">（阿基米德浮力定律 = 排開液重）</span>
+                        </div>
+                        <div class="node">
+                            <div class="formula-card" onclick="showModal('atm_units')">1 atm = 76 cm-Hg = 1033.6 gw/cm² = 1013 hPa</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <h2 class="modal-title" id="mTitle">公式名稱</h2>
+            <div class="modal-formula" id="mFormula">Formula</div>
+            <div class="modal-desc" id="mDesc">詳細說明載入中...</div>
+        </div>
+    </div>
+
+    <script>
+        // 節點折疊與展開邏輯
+        function toggleNode(button) {
+            const parent = button.parentElement;
+            parent.classList.toggle('expanded');
+        }
+
+        // 公式詳細資料庫
+        const formulaData = {
+            'f_ma': {
+                title: '牛頓第二運動定律',
+                formula: 'F = m × a',
+                desc: '當物體受合力不為零時，將產生與合力同方向的加速度。<br><ul><li><strong>F：</strong> 外力或合力 (牛頓 N 或 公斤重 kgw)</li><li><strong>m：</strong> 物體質量 (kg)</li><li><strong>a：</strong> 加速度 (m/s²)</li></ul>'
+            },
+            'f_uN': {
+                title: '摩擦力公式',
+                formula: 'f = μ × N',
+                desc: '物體接觸面間阻止相對運動的阻力。<br><ul><li><strong>f：</strong> 摩擦力</li><li><strong>μ：</strong> 摩擦係數（分為靜摩擦與動摩擦係數）</li><li><strong>N：</strong> 接觸面的正向力</li></ul>'
+            },
+            'w_fs': {
+                title: '功的定義',
+                formula: 'W = F × S',
+                desc: '當力作用在物體上，且物體在力的方向上有位移，則稱該力對物體作功。<br><ul><li><strong>W：</strong> 功 (焦耳 J)</li><li><strong>F：</strong> 沿著位移方向上的外力 (N)</li><li><strong>S：</strong> 物體的位移 (m)</li></ul>'
+            },
+            'inertia': {
+                title: '牛頓第一運動定律（慣性定律）',
+                formula: '當 F = 0 ➔ a = 0',
+                desc: '物體若不受外力，或所受合力為零時：<br><ul><li>靜者恆靜，動者恆作<strong>等速度直線運動 (v相同)</strong>。</li></ul>'
+            },
+            'v_at': {
+                title: '等加速度速度公式 (由靜止開始)',
+                formula: 'v = a × t',
+                desc: '當初速為零時，末速度與加速度及時間成正比。<br><ul><li><strong>v：</strong> 末速度 (m/s)</li><li><strong>a：</strong> 固定之加速度 (m/s²)</li><li><strong>t：</strong> 歷經時間 (s)</li></ul>'
+            },
+            'v2_v1': {
+                title: '等加速度末速公式',
+                formula: 'v₂ = v₁ + a × t',
+                desc: '任意初速下的等加速度末速度計算。<br><ul><li><strong>v₁：</strong> 初速度</li><li><strong>v₂：</strong> 末速度</li><li><strong>a：</strong> 加速度，<strong>t：</strong> 時間</li></ul>'
+            },
+            'dx_v1v2': {
+                title: '等加速度位移公式（平均速度法）',
+                formula: 'Δx = \\frac{v_1 + v_2}{2} \\times t',
+                desc: '位移等於初速與末速的平均（即平均速度）乘以時間。<br><ul><li><strong>Δx：</strong> 位移量 (x₂ - x₁)</li><li><strong>v₁ / v₂：</strong> 初速與末速</li></ul>'
+            },
+            'dx_v1t': {
+                title: '等加速度位移時間公式',
+                formula: 'Δx = v_1t + \\frac{1}{2}at^2',
+                desc: '已知初速、加速度與時間時，用以計算物體運動的位移距離。'
+            },
+            'a_dv': {
+                title: '加速度的定義',
+                formula: 'a = \\frac{\\Delta V}{\\Delta t}',
+                desc: '單位時間內的速度變化量。<br><ul><li><strong>ΔV：</strong> 速度變化量 (v₂ - v₁)</li><li><strong>Δt：</strong> 時間變化量</li></ul>'
+            },
+            'k_mv': {
+                title: '動能',
+                formula: 'K = \\frac{1}{2}m v^2',
+                desc: '物體因運動而具有的能量。<br><ul><li><strong>K：</strong> 動能 (J)</li><li><strong>m：</strong> 質量 (kg)</li><li><strong>v：</strong> 速率 (m/s)</li></ul>'
+            },
+            'u_mgh': {
+                title: '重力位能',
+                formula: 'U = m g h',
+                desc: '物體在地球重力場中，因所處高度而儲存的潛在能量。<br><ul><li><strong>U (或 Δx)：</strong> 位能或高度位能變化</li><li><strong>g：</strong> 重力加速度 (約 9.8 m/s²)</li><li><strong>h：</strong> 相對零位面的高度</li></ul>'
+            },
+            'energy_conserv': {
+                title: '力學能守恆定律',
+                formula: 'U_1 + K_1 = U_2 + K_2',
+                desc: '當系統僅受保守力（如重力、彈力）作用，而無摩擦力等非保守力作功時，系統的動能與位能總和保持不變（ΔE = 0）。'
+            },
+            'free_fall': {
+                title: '自由落體力學能轉換',
+                formula: 'mgh_1 = \\frac{1}{2}mv_2^2',
+                desc: '物體由高處自由落下時，減少的重力位能會完全轉化為動能。由此可導出末速度：<br><br><center style="color:#38bdf8; font-size:1.2em;"><strong>v₂ = √(2gh₁)</strong></center>'
+            },
+            'p_power': {
+                title: '功率 (力學)',
+                formula: 'P = \\frac{W}{t} = F \\times v',
+                desc: '單位時間內所作的功，代表作功的效率。<br><ul><li><strong>P：</strong> 功率 (瓦特 Watt, W)</li><li><strong>W：</strong> 功，<strong>t：</strong> 時間</li><li>若為等速運動，功率可簡化為 <strong>外力(F) × 速度(v)</strong></li></ul>'
+            },
+            'p_vi': {
+                title: '電功率公式',
+                formula: 'P = V \\times I = I^2 R = \\frac{V^2}{R}',
+                desc: '電路元件在單位時間內消耗或產生的電能。<br><ul><li><strong>V：</strong> 電壓 (伏特 V)</li><li><strong>I：</strong> 電流 (安培 A)</li><li><strong>R：</strong> 電阻 (歐姆 Ω)</li><li><strong>串聯時：</strong> 電流 I 相同，常用 P = I²R 評估。</li><li><strong>並聯時：</strong> 電壓 V 相同，常用 P = V²/R 評估。</li></ul>'
+            },
+            'ohm': {
+                title: '歐姆定律',
+                formula: 'V = I \\times R',
+                desc: '在常溫下，流過導體兩端的電流與導體兩端的電壓成正比。<br><ul><li><strong>R = V / I：</strong> 固定電阻值。</li></ul>'
+            },
+            'r_series': {
+                title: '電阻串聯',
+                formula: 'R = R_1 + R_2',
+                desc: '多個電阻序列連接。特性：<br><ul><li><strong>I 相同：</strong> 流經各電阻的電流相等。</li><li><strong>V 相加：</strong> 總電壓等於各電阻分壓之和。</li><li>總電阻會越串越大。</li></ul>'
+            },
+            'r_parallel': {
+                title: '電阻並聯',
+                formula: '\\frac{1}{R} = \\frac{1}{R_1} + \\frac{1}{R_2}',
+                desc: '多個電阻並列連接。特性：<br><ul><li><strong>V 相同：</strong> 各支路兩端的電壓相等。</li><li><strong>I 相加：</strong> 總電流等於各支路電流之和。</li><li>總電阻會越並越小。</li></ul>'
+            },
+            'w_vit': {
+                title: '電功與電能',
+                formula: 'W = V \\times I \\times t',
+                desc: '電流在時間 t 內所作的總功（消耗的電能）。<br><ul><li><strong>W = V × Q：</strong> 電壓乘以通過的電荷量 (Q)。</li><li>由歐姆定律代入可得 <strong>I²Rt</strong> (串聯常用) 或 <strong>(V²/R)t</strong> (並聯常用)。</li></ul>'
+            },
+            'h_msdt': {
+                title: '熱量計算公式',
+                formula: 'H = M \\times S \\times \\Delta T',
+                desc: '物體溫度變化時，吸收或放出的熱量。<br><ul><li><strong>H：</strong> 熱量 (卡 cal 或 焦耳 J)</li><li><strong>M：</strong> 質量</li><li><strong>S：</strong> 比熱 (cal/g·°C)</li><li><strong>ΔT：</strong> 溫度變化量</li></ul>'
+            },
+            'cal_joule': {
+                title: '熱功當量',
+                formula: '1 \\text{ 卡} = 4.18 \\text{ 焦耳}',
+                desc: '熱量與機械功（能量）之間的換算常數。證明熱也是能量的一種形式。'
+            },
+            'e_mc2': {
+                title: '質能互換公式',
+                formula: 'E = m c^2',
+                desc: '愛因斯坦狹義相對論提出的核心理論，說明質量與能量本質相同，可以相互轉換。<br><ul><li><strong>E：</strong> 轉換出的能量 (焦耳)</li><li><strong>m：</strong> 損耗的質量 (kg)</li><li><strong>c：</strong> 真空光速 (約 3 × 10⁸ m/s)</li></ul>'
+            },
+            'p_fa': {
+                title: '壓力定義',
+                formula: 'P = \\frac{F}{A}',
+                desc: '單位受力面積上所受到的垂直正向力。<br><ul><li><strong>P：</strong> 壓力 (如 gw/cm² 或 帕斯卡 Pa)</li><li><strong>F：</strong> 垂直作用力</li><li><strong>A：</strong> 受力總面積</li></ul>'
+            },
+            'p_hd': {
+                title: '靜液壓力公式',
+                formula: 'P = h \\times d',
+                desc: '液體內部因自身重量在某深度所產生的壓力。依據連通管原理，<strong>液中等高處，液壓必相等</strong>。<br><ul><li><strong>h：</strong> 該點與液面的垂直深度</li><li><strong>d：</strong> 液體密度</li></ul>'
+            },
+            'pascal': {
+                title: '帕斯卡原理',
+                formula: '\\frac{F_1}{A_1} = \\frac{F_2}{A_2}',
+                desc: '在<strong>密閉容器</strong>中的靜止流體，任一點受壓力變化時，此壓力變化會大小不變地傳遞到流體中的任一點。常用於液壓千斤頂，達到省力的效果。'
+            },
+            'buoyancy': {
+                title: '阿基米德浮力原理',
+                formula: 'B = V_{\\text{物在液中}} \\times D_{\\text{液}}',
+                desc: '物體在流體中所受的浮力，等於其所<strong>排開的液體總重量</strong>。<br><ul><li><strong>B：</strong> 浮力</li><li><strong>V_in：</strong> 物體在液面下的體積</li><li><strong>D_fluid：</strong> 液體密度</li></ul>'
+            },
+            'atm_units': {
+                title: '標準大氣壓單位換算',
+                formula: '1 \\text{ atm}',
+                desc: '標準大氣壓在不同單位系統下的數值：<br><ul><li>= <strong>76 cm-Hg</strong> (汞柱高)</li><li>= <strong>1033.6 gw/cm²</strong> (公克重每平方公分)</li><li>= <strong>1013 hPa</strong> (百帕斯卡)</li></ul>'
+            }
+        };
+
+        // 開啟彈窗
+        function showModal(id) {
+            const data = formulaData[id];
+            if (!data) return;
+
+            document.getElementById('mTitle').innerText = data.title;
+            
+            // 簡單處理 LaTeX 風格的顯示
+            let formulaHtml = data.formula
+                .replace(/\\frac{(.*?)}{(.*?)}/g, '<span style="border-bottom:2px solid; display:inline-block; padding:0 5px;">$1</span> / <span style="display:inline-block; padding:0 5px;">$2</span>')
+                .replace(/\\times/g, '×')
+                .replace(/\\text{(.*?)}/g, '$1')
+                .replace(/\^2/g, '²');
+
+            document.getElementById('mFormula').innerHTML = formulaHtml;
+            document.getElementById('mDesc').innerHTML = data.desc;
+
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        // 關閉彈窗
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
