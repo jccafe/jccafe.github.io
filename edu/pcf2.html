@@ -1,0 +1,869 @@
+html_content = """<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物理公式物理量網狀互動概念圖</title>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --sidebar-bg: #1e293b;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-glow: rgba(56, 189, 248, 0.15);
+            
+            /* 物理領域色彩配搭 */
+            --color-mechanics: #38bdf8;   /* 藍色 - 力學 */
+            --color-kinematics: #fb923c;  /* 橘色 - 運動學 */
+            --color-work-energy: #4ade80; /* 綠色 - 功與能 */
+            --color-fluids: #c084fc;      /* 紫色 - 流體與壓力 */
+            --color-electricity: #facc15; /* 黃色 - 電學 */
+            --color-thermo: #f87171;      /* 紅色 - 熱與質能 */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+        }
+
+        /* 主畫布容器 */
+        #main-container {
+            flex: 1;
+            position: relative;
+            height: 100%;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        svg:active {
+            cursor: grabbing;
+        }
+
+        /* 連線樣式 */
+        .link {
+            stroke: #475569;
+            stroke-opacity: 0.4;
+            stroke-width: 1.5px;
+            transition: stroke 0.2s, stroke-opacity 0.2s, stroke-width 0.2s;
+        }
+
+        .link.highlighted {
+            stroke: #e2e8f0;
+            stroke-opacity: 0.9;
+            stroke-width: 3px;
+        }
+
+        /* 連線文字樣式 */
+        .link-label {
+            font-size: 10px;
+            fill: var(--text-muted);
+            text-anchor: middle;
+            paint-order: stroke;
+            stroke: var(--bg-color);
+            stroke-width: 4px;
+            stroke-linejoin: round;
+            pointer-events: none;
+            font-weight: 500;
+            transition: fill 0.2s, font-size 0.2s;
+        }
+
+        .link-label.highlighted {
+            fill: #fff;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* 節點樣式 */
+        .node-group {
+            cursor: pointer;
+        }
+
+        .node-circle {
+            stroke-width: 2px;
+            transition: r 0.3s, stroke-width 0.3s, filter 0.3s;
+        }
+
+        .node-group:hover .node-circle {
+            filter: drop-shadow(0 0 8px var(--node-color));
+            stroke-width: 3.5px;
+        }
+
+        .node-circle.collapsed-active {
+            stroke-dasharray: 4px;
+        }
+
+        .node-label {
+            font-size: 12px;
+            fill: var(--text-main);
+            text-anchor: middle;
+            pointer-events: none;
+            paint-order: stroke;
+            stroke: var(--bg-color);
+            stroke-width: 3px;
+            font-weight: 500;
+        }
+
+        .node-group:hover .node-label {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        /* 右側資訊面板 */
+        #sidebar {
+            width: 400px;
+            background-color: var(--sidebar-bg);
+            border-left: 1px solid var(--border-color);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.3);
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .sidebar-content {
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        .placeholder-text {
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 40px;
+            font-style: italic;
+        }
+
+        /* 說明面板內元素調色 */
+        .formula-section {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid var(--section-color, #38bdf8);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 20px;
+        }
+
+        .formula-title {
+            font-weight: bold;
+            color: var(--section-color, #38bdf8);
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        p {
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        /* 浮動控制面板 */
+        .controls-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 5;
+        }
+
+        .btn-control {
+            background-color: var(--sidebar-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .btn-control:hover {
+            background-color: #2d3d52;
+            border-color: #475569;
+        }
+
+        /* 頂部主題提示區 */
+        .top-banner {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            padding: 10px 18px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            pointer-events: none;
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* 提示操作之精緻小氣泡 */
+        .interaction-tip {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-container">
+        <div class="controls-overlay">
+            <button class="btn-control" id="btn-reset-zoom">
+                <i class="fa-solid fa-expand"></i> 重設縮放與視角
+            </button>
+            <button class="btn-control" id="btn-expand-all">
+                <i class="fa-solid fa-folder-open"></i> 展開所有概念
+            </button>
+            <button class="btn-control" id="btn-collapse-all">
+                <i class="fa-solid fa-folder"></i> 收合二級概念
+            </button>
+        </div>
+
+        <div class="top-banner">
+            <div class="legend-item"><span class="legend-dot" style="background-color: var(--color-mechanics)"></span>力學</div>
+            <div class="legend-item"><span class="legend-dot" style="background-color: var(--color-kinematics)"></span>運動學</div>
+            <div class="legend-item"><span class="legend-dot" style="background-color: var(--color-work-energy)"></span>功與能</div>
+            <div class="legend-item"><span class="legend-dot" style="background-color: var(--color-fluids)"></span>流體力學</div>
+            <div class="legend-item"><span class="legend-dot" style="background-color: var(--color-electricity)"></span>電學</div>
+            <div class="legend-item"><span class="legend-dot" style="background-color: var(--color-thermo)"></span>熱與質能</div>
+        </div>
+
+        <div class="interaction-tip">
+            <i class="fa-solid fa-circle-info"></i> <b>互動操作：</b>單擊節點顯示詳解 | 雙擊核心節點展開/收合關聯公式 | 拖曳節點可固定位置
+        </div>
+
+        <svg id="graph-svg"></svg>
+    </div>
+
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title" id="side-title">
+                <i class="fa-solid fa-atom"></i> 點選物理概念
+            </div>
+            <div id="side-badge"></div>
+        </div>
+        <div class="sidebar-content" id="side-content">
+            <div class="placeholder-text">
+                <i class="fa-solid fa-hand-pointer" style="font-size: 32px; margin-bottom: 15px; display: block; color: var(--text-muted)"></i>
+                請點擊圖譜中的任何一個圓形節點，此處將同步呈現完整之公式推導、定義及物理量關聯說明。
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 資料定義區 (精準萃取自公式整理文件及圖表結構) ---
+        const categoryConfig = {
+            mechanics: { label: "力學與平衡", color: "#38bdf8" },
+            kinematics: { label: "運動學", color: "#fb923c" },
+            work_energy: { label: "功與能量", color: "#4ade80" },
+            fluids: { label: "流體與壓力", color: "#c084fc" },
+            electricity: { label: "電學", color: "#facc15" },
+            thermo: { label: "熱與質能", color: "#f87171" }
+        };
+
+        // 節點清單
+        const rawNodes = [
+            // 力學與平衡
+            { id: "force", label: "F 力", category: "mechanics", isMain: true, radius: 26, details: `
+                <div class="formula-section" style="--section-color: var(--color-mechanics)">
+                    <div class="formula-title">核心概念與定律</div>
+                    <p><b>性質：</b>具有大小、方向、作用點三要素。</p>
+                    <p><b>牛頓第二運動定律：</b>\\[ F = m \\times a \\]</p>
+                    <p><b>慣性定律 (牛1)：</b>當外力合力 \\( F = 0 \\rightarrow a = 0 \\)，系統處於靜者恆靜、動者恆作等速度運動 (等 v)。</p>
+                </div>
+                <div class="formula-section" style="--section-color: var(--color-mechanics)">
+                    <div class="formula-title">力的種類分支</div>
+                    <p><b>接觸力：</b></p>
+                    <ul>
+                        <li><b>摩擦力：</b>\\[ f = \\mu \\times N \\] (\\( \\mu \\) 為摩擦係數，\\( N \\) 為正向力)</li>
+                        <li><b>浮力 B：</b>\\[ B = V_{\\text{物在液中}} \\times D_{\\text{液}} = \\text{排開液重} \\]</li>
+                    </ul>
+                    <p><b>超距力：</b>萬有引力、靜電力、磁力。</p>
+                </div>
+            ` },
+            { id: "torque", label: "L 力矩", category: "mechanics", isMain: false, parentMain: "force", radius: 18, details: `
+                <div class="formula-section" style="--section-color: var(--color-mechanics)">
+                    <div class="formula-title">力矩定義</div>
+                    <p><b>基本公式：</b>\\[ L = F \\times d \\]</p>
+                    <p>其中 \\( d \\) 為<b>力臂</b>（即自轉動支點到垂直力作用線的垂直距離）。</p>
+                </div>
+            ` },
+            { id: "equilibrium", label: "靜力平衡", category: "mechanics", isMain: false, parentMain: "force", radius: 20, details: `
+                <div class="formula-section" style="--section-color: var(--color-mechanics)">
+                    <div class="formula-title">平衡總體條件</div>
+                    <p>物體若處於靜力平衡，必須同時滿足<b>移動平衡</b>與<b>轉動平衡</b>：</p>
+                    <ul>
+                        <li><b>移動平衡：</b>合力 \\( \\Delta F = 0 \\)</li>
+                        <li><b>轉動平衡：</b>合力矩 \\( \\Delta L = 0 \\)</li>
+                    </ul>
+                </div>
+            ` },
+            { id: "trans_equil", label: "移動平衡", category: "mechanics", isMain: false, parentMain: "force", radius: 16, details: `
+                <div class="formula-section" style="--section-color: var(--color-mechanics)">
+                    <div class="formula-title">移動平衡條件</div>
+                    <p><b>公式：</b>\\[ \\Delta F_{\\text{合力}} = 0 \\]</p>
+                    <p>代表物體沒有加速度（\\( a = 0 \\)），保持靜止或等速度直線運動狀態。</p>
+                </div>
+            ` },
+            { id: "rot_equil", label: "轉動平衡", category: "mechanics", isMain: false, parentMain: "force", radius: 16, details: `
+                <div class="formula-section" style="--section-color: var(--color-mechanics)">
+                    <div class="formula-title">轉動平衡條件</div>
+                    <p><b>公式：</b>\\[ \\Delta L = 0 \\quad (L_1 = L_2) \\]</p>
+                    <p>即順時針總力矩等於逆時針總力矩：\\[ F_1 \\times d_1 = F_2 \\times d_2 \\]</p>
+                </div>
+            ` },
+
+            // 運動學
+            { id: "kin_a", label: "等 a 運動", category: "kinematics", isMain: true, radius: 24, details: `
+                <div class="formula-section" style="--section-color: var(--color-kinematics)">
+                    <div class="formula-title">等加速度核心公式</div>
+                    <p>當加速度 \\( a \\) 為定值時適用：</p>
+                    <ul>
+                        <li><b>末速與時間：</b>\\[ v_2 = v_1 + a \\times t \\quad (\\text{若初速為0, } v=at) \\]</li>
+                        <li><b>平均速度求位移：</b>\\[ \\Delta x = \\frac{v_1 + v_2}{2} \\times t \\\]</li>
+                        <li><b>經典位移公式：</b>\\[ \\Delta x = v_1 \\times t + \\frac{1}{2} a \\times t^2 \\]</li>
+                    </ul>
+                </div>
+            ` },
+            { id: "kin_v", label: "等 V 運動", category: "kinematics", isMain: false, parentMain: "kin_a", radius: 18, details: `
+                <div class="formula-section" style="--section-color: var(--color-kinematics)">
+                    <div class="formula-title">等速度運動</div>
+                    <p>當速度 \\( V \\) 固定不變時：</p>
+                    <p><b>公式：</b>\\[ \\Delta x = V \\times \\Delta t \\]</p>
+                    <p>此時加速度 \\( a = 0 \\)。</p>
+                </div>
+            ` },
+            { id: "physics_a", label: "加速度 a", category: "kinematics", isMain: false, parentMain: "kin_a", radius: 16, details: `
+                <div class="formula-section" style="--section-color: var(--color-kinematics)">
+                    <div class="formula-title">加速度定義</div>
+                    <p>單位時間內速度的變化量：</p>
+                    <p><b>公式：</b>\\[ a = \\frac{\\Delta V}{\\Delta t} \\]</p>
+                </div>
+            ` },
+            { id: "physics_v", label: "速度 V", category: "kinematics", isMain: false, parentMain: "kin_a", radius: 16, details: `
+                <div class="formula-section" style="--section-color: var(--color-kinematics)">
+                    <div class="formula-title">速度定義</div>
+                    <p>單位時間內位移的變化量：</p>
+                    <p><b>公式：</b>\\[ V = \\frac{\\Delta x}{\\Delta t} \\]</p>
+                </div>
+            ` },
+            { id: "physics_dx", label: "位移 Δx", category: "kinematics", isMain: false, parentMain: "kin_a", radius: 15, details: `
+                <div class="formula-section" style="--section-color: var(--color-kinematics)">
+                    <div class="formula-title">位移定義</div>
+                    <p>位置的變化量（末位置減去初位置）：</p>
+                    <p><b>公式：</b>\\[ \\Delta x = x_2 - x_1 \\]</p>
+                </div>
+            ` },
+
+            // 功與能量
+            { id: "work", label: "W 功", category: "work_energy", isMain: true, radius: 25, details: `
+                <div class="formula-section" style="--section-color: var(--color-work-energy)">
+                    <div class="formula-title">力學功定義</div>
+                    <p><b>基本公式：</b>\\[ W = F \\times S \\]</p>
+                    <p>當力與位移同方向時作正功。</p>
+                </div>
+                <div class="formula-section" style="--section-color: var(--color-work-energy)">
+                    <div class="formula-title">電學中的功 (電能)</div>
+                    <p>由電壓 \\( V \\)、電量 \\( Q \\)、電流 \\( I \\) 及電阻 \\( R \\) 衍生：</p>
+                    <p>\\[ W = V \\times Q = V \\times I \\times t \\]</p>
+                    <p><b>串聯電路 (I相同)：</b>\\[ W = I^2 \\times R \\times t \\]</p>
+                    <p><b>並聯電路 (V相同)：</b>\\[ W = \\frac{V^2}{R} \\times t \\]</p>
+                </div>
+            ` },
+            { id: "power", label: "P 功率", category: "work_energy", isMain: false, parentMain: "work", radius: 19, details: `
+                <div class="formula-section" style="--section-color: var(--color-work-energy)">
+                    <div class="formula-title">力學功率</div>
+                    <p>單位時間內所作的功：</p>
+                    <p><b>公式：</b>\\[ P = \\frac{W}{t} = \\frac{F \\times S}{t} = F \\times v \\]</p>
+                </div>
+                <div class="formula-section" style="--section-color: var(--color-work-energy)">
+                    <div class="formula-title">電功率</div>
+                    <p>單位時間內消耗的電能：</p>
+                    <p>\\[ P = \\frac{V \\times Q}{t} = V \\times I \\]</p>
+                    <p><b>串聯選用：</b>\\[ P = I^2 \\times R \\]</p>
+                    <p><b>並聯選用：</b>\\[ P = \\frac{V^2}{R} \\]</p>
+                </div>
+            ` },
+            { id: "work_energy_thm", label: "功能定理", category: "work_energy", isMain: false, parentMain: "work", radius: 18, details: `
+                <div class="formula-section" style="--section-color: var(--color-work-energy)">
+                    <div class="formula-title">功能定理 (W = ΔE)</div>
+                    <p>合力對一個物體所作的總功，等於該物體<b>力學能的變化量</b>或<b>動能的變化量</b>。</p>
+                </div>
+            ` },
+            { id: "mech_energy", label: "力學能 E", category: "work_energy", isMain: true, radius: 24, details: `
+                <div class="formula-section" style="--section-color: var(--color-work-energy)">
+                    <div class="formula-title">力學能守恆定律</div>
+                    <p>當系統僅受保守力（如重力、彈力）作用，無摩擦力耗損時，系統總力學能保持不變（\\( \\Delta E = 0 \\)）：</p>
+                    <p>\\[ U_1 + K_1 = U_2 + K_2 \\]</p>
+                </div>
+            ` },
+            { id: "kinetic_k", label: "動能 K", category: "work_energy", isMain: false, parentMain: "mech_energy", radius: 16, details: `
+                <div class="formula-section" style="--section-color: var(--color-work-energy)">
+                    <div class="formula-title">動能定義</div>
+                    <p>物體由於運動而具有的能量：</p>
+                    <p><b>公式：</b>\\[ K = \\frac{1}{2} m v^2 \\]</p>
+                </div>
+            ` },
+            { id: "potential_u", label: "位能 U", category: "work_energy", isMain: false, parentMain: "mech_energy", radius: 16, details: `
+                <div class="formula-section" style="--section-color: var(--color-work-energy)">
+                    <div class="formula-title">位能種類</div>
+                    <p><b>重力位能變化：</b>\\[ \\Delta U = mgh \\]</p>
+                    <p><b>彈力位能：</b>\\[ U = \\frac{1}{2} k x^2 \\] (\\( k \\) 為彈簧彈性係數，\\( x \\) 為形變量)</p>
+                </div>
+            ` },
+            { id: "free_fall", label: "自由落體", category: "work_energy", isMain: false, parentMain: "mech_energy", radius: 19, details: `
+                <div class="formula-section" style="--section-color: var(--color-work-energy)">
+                    <div class="formula-title">自由落體與力學能守恆</div>
+                    <p>物體自高處靜止釋放自由下落，初動能為0。最高點位能完全轉化為末動能：</p>
+                    <p>\\[ mgh_1 = \\frac{1}{2} m v_2^2 \\]</p>
+                    <p><b>解出速度：</b>\\[ v_2 = \\sqrt{2gh_1} \\]</p>
+                    <p><b>解出高度：</b>\\[ h_1 = \\frac{v_2^2}{2g} \\]</p>
+                </div>
+            ` },
+
+            // 流體與壓力
+            { id: "pressure", label: "P 壓力", category: "fluids", isMain: true, radius: 24, details: `
+                <div class="formula-section" style="--section-color: var(--color-fluids)">
+                    <div class="formula-title">壓力基本定義</div>
+                    <p>物體單位受力面積上所承受的垂直正向力：</p>
+                    <p><b>公式：</b>\\[ P = \\frac{F}{A} \\]</p>
+                </div>
+                <div class="formula-section" style="--section-color: var(--color-fluids)">
+                    <div class="formula-title">靜止液體壓力</div>
+                    <p>液面下深度為 \\( h \\)、液體密度為 \\( d \\) 時的內部壓力：</p>
+                    <p><b>公式：</b>\\[ P = h \\times d \\]</p>
+                </div>
+            ` },
+            { id: "pascal", label: "帕斯卡原理", category: "fluids", isMain: false, parentMain: "pressure", radius: 18, details: `
+                <div class="formula-section" style="--section-color: var(--color-fluids)">
+                    <div class="formula-title">帕斯卡原理 (密閉容器)</div>
+                    <p>在密閉容器內的靜止流體，任一點所受壓力的改變，會大小不變地傳遞到流體內部的每一個角落。</p>
+                    <p><b>公式：</b>\\[ \\frac{F_1}{A_1} = \\frac{F_2}{A_2} \\]</p>
+                    <p>常用於油壓千斤頂等省力機械。</p>
+                </div>
+            ` },
+            { id: "connected_tube", label: "連通管原理", category: "fluids", isMain: false, parentMain: "pressure", radius: 16, details: `
+                <div class="formula-section" style="--section-color: var(--color-fluids)">
+                    <div class="formula-title">連通管原理</div>
+                    <p>底部相連通的容器，盛入同一種靜止液體時，不論各管的形狀與粗細，各管液面在穩定時必在<b>同一水平高度</b>。此時液中等高處的<b>液壓相等</b>。</p>
+                </div>
+            ` },
+            { id: "atm_press", label: "大氣壓", category: "fluids", isMain: false, parentMain: "pressure", radius: 17, details: `
+                <div class="formula-section" style="--section-color: var(--color-fluids)">
+                    <div class="formula-title">標準大氣壓 (1 atm) 換算</div>
+                    <p>\\[ 1 \\text{ atm} = 76 \\text{ cm-Hg} \\]</p>
+                    <p>\\[ 1 \\text{ atm} = 1033.6 \\text{ gw/cm}^2 \\]</p>
+                    <p>\\[ 1 \\text{ atm} = 1013 \\text{ hPa (百帕)} \\]</p>
+                </div>
+            ` },
+
+            // 電學
+            { id: "ohm", label: "歐姆定律", category: "electricity", isMain: true, radius: 24, details: `
+                <div class="formula-section" style="--section-color: var(--color-electricity)">
+                    <div class="formula-title">歐姆定律</div>
+                    <p>在定溫下，導體兩端的電壓與通過導體的電流成正比：</p>
+                    <p><b>公式：</b>\\[ R = \\frac{V}{I} \\quad \\rightarrow \\quad V = I \\times R \\]</p>
+                    <p>其中 \\( V \\) 為電壓、\\( I \\) 為電流、\\( R \\) 為電阻。</p>
+                </div>
+            ` },
+            { id: "res_calc", label: "電阻計算", category: "electricity", isMain: false, parentMain: "ohm", radius: 18, details: `
+                <div class="formula-section" style="--section-color: var(--color-electricity)">
+                    <div class="formula-title">電阻電路組合</div>
+                    <p><b>串聯電路：</b></p>
+                    <ul>
+                        <li>總電阻：\\[ R = R_1 + R_2 \\]</li>
+                        <li>特徵：電流相同（\\( I \\)同），電壓相加（\\( V = V_1 + V_2 \\)）。</li>
+                    </ul>
+                    <p><b>並聯電路：</b></p>
+                    <ul>
+                        <li>總電阻：\\[ \\frac{1}{R} = \\frac{1}{R_1} + \\frac{1}{R_2} \\]</li>
+                        <li>特徵：電壓相同（\\( V \\)同），電流相加（\\( I = I_1 + I_2 \\)）。</li>
+                    </ul>
+                </div>
+            ` },
+
+            // 熱與總能量
+            { id: "energy_all", label: "能量 E", category: "thermo", isMain: true, radius: 22, details: `
+                <div class="formula-section" style="--section-color: var(--color-thermo)">
+                    <div class="formula-title">能量多樣性</div>
+                    <p>能量具有多種形式，包括力學能、熱能、電能、化學能、核能與電磁能等。各能量形式在守恆定律下可相互轉換。</p>
+                </div>
+            ` },
+            { id: "heat_h", label: "熱 H", category: "thermo", isMain: false, parentMain: "energy_all", radius: 18, details: `
+                <div class="formula-section" style="--section-color: var(--color-thermo)">
+                    <div class="formula-title">熱量計算公式</div>
+                    <p>物體吸收或釋放熱量引起溫度變化時：</p>
+                    <p><b>公式：</b>\\[ H = M \\times S \\times \\Delta T \\]</p>
+                    <p>（\\( M \\)為質量，\\( S \\)為比熱，\\( \\Delta T \\)為溫度變化量）</p>
+                    <p><b>熱功當量轉換：</b>\\[ 1 \\text{ 卡} = 4.18 \\text{ 焦耳} \\]</p>
+                </div>
+            ` },
+            { id: "mass_energy", label: "質能互換", category: "thermo", isMain: false, parentMain: "energy_all", radius: 18, details: `
+                <div class="formula-section" style="--section-color: var(--color-thermo)">
+                    <div class="formula-title">愛因斯坦質能方程式</div>
+                    <p>質量與能量的互換關係：</p>
+                    <p><b>公式：</b>\\[ E = m \\times c^2 \\]</p>
+                    <p>其中 \\( c \\) 為真空中的光速（約 \\( 3 \\times 10^8 \\text{ m/s} \\)）。</p>
+                </div>
+            ` }
+        ];
+
+        // 連結關係清單 (標明連結彼此的相同物理量)
+        const rawLinks = [
+            { source: "force", target: "torque", label: "F (力)" },
+            { source: "force", target: "trans_equil", label: "F (力)" },
+            { source: "torque", target: "rot_equil", label: "L (力矩)" },
+            { source: "trans_equil", target: "equilibrium", label: "ΔF=0" },
+            { source: "rot_equil", target: "equilibrium", label: "ΔL=0" },
+            { source: "force", target: "kin_a", label: "F = m * a (定律結合)" },
+            { source: "kin_a", target: "physics_a", label: "a (加速度)" },
+            { source: "kin_a", target: "physics_v", label: "v (速度)" },
+            { source: "kin_v", target: "physics_v", label: "v (速度)" },
+            { source: "kin_v", target: "physics_dx", label: "Δx (位移)" },
+            { source: "physics_v", target: "physics_a", label: "Δv / Δt" },
+            { source: "physics_dx", target: "physics_v", label: "Δx / Δt" },
+            { source: "force", target: "work", label: "F (力) [W = F * S]" },
+            { source: "force", target: "pressure", label: "F (力) [P = F / A]" },
+            { source: "pressure", target: "pascal", label: "P (壓力)" },
+            { source: "pressure", target: "connected_tube", label: "P (壓力)" },
+            { source: "pressure", target: "atm_press", label: "P (單位)" },
+            { source: "work", target: "power", label: "W (功) [P = W / t]" },
+            { source: "work", target: "work_energy_thm", label: "W (功) [功能定理]" },
+            { source: "work_energy_thm", target: "mech_energy", label: "ΔE (能量變化)" },
+            { source: "mech_energy", target: "kinetic_k", label: "包含 K" },
+            { source: "mech_energy", target: "potential_u", label: "包含 U" },
+            { source: "mech_energy", target: "free_fall", label: "力學能守恆" },
+            { source: "kinetic_k", target: "physics_v", label: "v (速度)" },
+            { source: "potential_u", target: "physics_dx", label: "h / Δx (高度)" },
+            { source: "power", target: "ohm", label: "V, I, R (電功率結合)" },
+            { source: "work", target: "ohm", label: "V, I, R (電功結合)" },
+            { source: "ohm", target: "res_calc", label: "V, I, R (歐姆定律)" },
+            { source: "energy_all", target: "mech_energy", label: "能量形式" },
+            { source: "energy_all", target: "heat_h", label: "能量形式" },
+            { source: "energy_all", target: "mass_energy", label: "E (能量)" },
+            { source: "heat_h", target: "work", label: "1卡 = 4.18焦耳 (熱功當量)" }
+        ];
+
+        // 深拷貝原始資料以供運行期操作
+        let nodes = JSON.parse(JSON.stringify(rawNodes));
+        let links = JSON.parse(JSON.stringify(rawLinks));
+
+        // 為所有 Main 節點初始化 collapsed 狀態為 false
+        nodes.forEach(n => {
+            if (n.isMain) n.collapsed = false;
+        });
+
+        // --- 2. 初始化 D3 力導向圖環境 ---
+        const svg = d3.select("#graph-svg");
+        let width = window.innerWidth - 400;
+        let height = window.innerHeight;
+
+        // 異步跟隨視窗縮放修正
+        window.addEventListener('resize', () => {
+            width = window.innerWidth - 400;
+            height = window.innerHeight;
+            simulation.force("center", d3.forceCenter(width / 2, height / 2)).alpha(0.3).restart();
+        });
+
+        // 創建一個總群組以便縮放
+        const containerGroup = svg.append("g").attr("class", "zoom-container");
+
+        // 綁定縮放與平移行為
+        const zoomBehavior = d3.zoom()
+            .scaleExtent([0.3, 3])
+            .on("zoom", (event) => {
+                containerGroup.attr("transform", event.transform);
+            });
+        svg.call(zoomBehavior);
+
+        // 初始化力學模擬器
+        const simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(d => d.id).distance(130).strength(1))
+            .force("charge", d3.forceManyBody().strength(-350).distanceMax(300))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(d => d.radius + 15));
+
+        // 建立連線與節點的 DOM 容器分層 (確保連線在下方、節點在上方)
+        let linkGroup = containerGroup.append("g").attr("class", "links-layer");
+        let nodeGroup = containerGroup.append("g").attr("class", "nodes-layer");
+
+        // --- 3. 核心渲染與刷新函數 (支援縮合展開) ---
+        function renderGraph() {
+            // A. 計算當前應顯示的節點與連線
+            const visibleNodes = nodes.filter(n => {
+                if (!n.parentMain) return true; // 核心節點必顯示
+                const parentNode = nodes.find(p => p.id === n.parentMain);
+                return parentNode && !parentNode.collapsed; // 若父節點縮合，則隱藏子節點
+            });
+
+            const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
+
+            const visibleLinks = links.filter(l => {
+                const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+                const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+                return visibleNodeIds.has(sourceId) && visibleNodeIds.has(targetId);
+            });
+
+            // B. 進行 D3 資料綁定 - 連線段
+            const linkSelection = linkGroup.selectAll(".link-container")
+                .data(visibleLinks, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
+
+            // 移除不再需要的連線
+            linkSelection.exit().remove();
+
+            // 新增連線容器 (包含線段與文字標籤)
+            const linkEnter = linkSelection.enter().append("g")
+                .attr("class", "link-container");
+
+            linkEnter.append("line")
+                .attr("class", "link")
+                .attr("id", d => `line-${d.source}-${d.target}`);
+
+            linkEnter.append("text")
+                .attr("class", "link-label")
+                .text(d => d.label);
+
+            const allLinks = linkEnter.merge(linkSelection);
+
+            // C. 進行 D3 資料綁定 - 節點
+            const nodeSelection = nodeGroup.selectAll(".node-group")
+                .data(visibleNodes, d => d.id);
+
+            // 移除收合隱藏的節點
+            nodeSelection.exit().remove();
+
+            // 新增節點群組
+            const nodeEnter = nodeSelection.enter().append("g")
+                .attr("class", "node-group")
+                .on("click", handleNodeClick)
+                .on("dblclick", handleNodeDblClick)
+                .call(d3.drag()
+                    .on("start", dragStarted)
+                    .on("drag", dragged)
+                    .on("end", dragEnded));
+
+            // 繪製圓圈形狀
+            nodeEnter.append("circle")
+                .attr("class", "node-circle")
+                .attr("r", d => d.radius)
+                .attr("fill", d => categoryConfig[d.category].color)
+                .style("--node-color", d => categoryConfig[d.category].color)
+                .attr("stroke", varBgColor => "#0f172a");
+
+            // 繪製文字標籤
+            nodeEnter.append("text")
+                .attr("class", "node-label")
+                .attr("y", d => d.radius + 15)
+                .text(d => d.label);
+
+            const allNodes = nodeEnter.merge(nodeSelection);
+
+            // 更新節點狀態視覺特效 (如果核心節點被縮合，給予虛線外框)
+            allNodes.select(".node-circle")
+                .classed("collapsed-active", d => d.isMain && d.collapsed)
+                .attr("stroke", d => d.isMain && d.collapsed ? "#fff" : "#0f172a");
+
+            // D. 重啟模擬器並將篩選後的資料餵入
+            simulation.nodes(visibleNodes);
+            simulation.force("link").links(visibleLinks);
+            simulation.alpha(0.4).restart();
+
+            // E. 每一個 Tick 重新計算坐標對齊
+            simulation.on("tick", () => {
+                allLinks.select(".link")
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                allLinks.select(".link-label")
+                    .attr("x", d => (d.source.x + d.target.x) / 2)
+                    .attr("y", d => (d.source.y + d.target.y) / 2 + 3);
+
+                allNodes.attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+        }
+
+        // --- 4. 互動事件處理邏輯 ---
+
+        // 點擊節點：高亮顯示關聯，並在右側面板加載細節與 LaTeX 渲染
+        function handleNodeClick(event, d) {
+            event.stopPropagation(); // 阻止事件冒泡
+
+            // 更改側邊欄標題與內容
+            const config = categoryConfig[d.category];
+            document.getElementById("side-title").innerHTML = `<i class="fa-solid fa-circle-nodes" style="color:${config.color}"></i> ${d.label}`;
+            document.getElementById("side-badge").innerHTML = `<span class="category-badge" style="background-color:${config.color}">${config.label}</span>`;
+            document.getElementById("side-content").innerHTML = d.details;
+
+            // 重新請求 MathJax 對右側新注入的內容進行數學公式排版
+            if (window.MathJax && window.MathJax.typeset) {
+                MathJax.typeset();
+            }
+
+            // 視覺高亮效果：將與此點無關的連線變淡，相連的連線與標籤加粗高亮
+            d3.selectAll(".link").classed("highlighted", false);
+            d3.selectAll(".link-label").classed("highlighted", false);
+
+            d3.selectAll(".link").filter(l => l.source.id === d.id || l.target.id === d.id)
+                .classed("highlighted", true);
+                
+            d3.selectAll(".link-label").filter(l => l.source.id === d.id || l.target.id === d.id)
+                .classed("highlighted", true);
+        }
+
+        // 雙擊節點：展開或收合二級分支
+        function handleNodeDblClick(event, d) {
+            event.stopPropagation();
+            if (!d.isMain) return; // 只有一級核心主概念支持展開與收合
+
+            d.collapsed = !d.collapsed;
+            renderGraph(); // 重新計算可視網格
+        }
+
+        // 拖曳處理常式 (允許使用者微調各公式佈局)
+        function dragStarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.2).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragEnded(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            // 釋放固定坐標，使其恢復物理碰撞。若想鎖定位置可以不清除 fx, fy
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // --- 5. 頂部全局控制按鈕功能 ---
+
+        // 重設縮放視角
+        document.getElementById("btn-reset-zoom").addEventListener("click", () => {
+            svg.transition().duration(600).call(
+                zoomBehavior.transform,
+                d3.zoomIdentity.translate(0, 0).scale(1)
+            );
+        });
+
+        // 展開所有概念
+        document.getElementById("btn-expand-all").addEventListener("click", () => {
+            nodes.forEach(n => { if (n.isMain) n.collapsed = false; });
+            renderGraph();
+        });
+
+        // 收合所有次要二級分支
+        document.getElementById("btn-collapse-all").addEventListener("click", () => {
+            nodes.forEach(n => { if (n.isMain) n.collapsed = true; });
+            renderGraph();
+        });
+
+        // 點擊空白處重設高亮
+        svg.on("click", () => {
+            d3.selectAll(".link").classed("highlighted", false);
+            d3.selectAll(".link-label").classed("highlighted", false);
+        });
+
+        // --- 6. 啟動渲染 ---
+        renderGraph();
+
+    </script>
+</body>
+</html>
+"""
+
+# 將完整的互動式網頁程式碼儲存成實體檔案
+file_path = "物理公式互動概念圖網譜網頁.html"
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print(f"File successfully created at {file_path}")
