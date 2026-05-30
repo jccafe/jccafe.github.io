@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物理公式地圖 - 完整復刻版</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --box-border: #f28482; /* 復刻原圖橘粉色外框 */
+            --box-bg: #fffbfb;
+            --text-color: #333333;
+            --link-color: #457b9d;
+            --shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background-color: #f7f9fa;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1d3557;
+            margin-bottom: 5px;
+        }
+
+        .instruction {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+        }
+
+        /* 整個大畫布：分為左、中、右三大核心集群 */
+        .map-canvas {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            align-items: start;
+        }
+
+        /* 概念區塊基底 */
+        .cluster {
+            background: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: var(--shadow);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .cluster-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--link-color);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #1d3557;
+        }
+
+        .collapse-btn {
+            background: #f1faee;
+            border: 1px solid #a8dadc;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 2px 8px;
+            font-size: 0.8em;
+        }
+
+        /* 折疊時隱藏內部內容 */
+        .cluster.collapsed .cluster-content {
+            display: none;
+        }
+
+        /* 復刻原圖的公式/概念方框 */
+        .node-box {
+            background-color: var(--box-bg);
+            border: 2px solid #f4a261; /* 橘色線條 */
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.2s ease;
+            position: relative;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .node-box:hover {
+            background-color: #f4a261;
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .node-box .title {
+            font-weight: bold;
+            font-size: 0.85em;
+            color: #e76f51;
+            margin-bottom: 3px;
+        }
+        .node-box:hover .title {
+            color: white;
+        }
+
+        /* 關係箭頭標示 */
+        .arrow-down, .arrow-right, .arrow-left {
+            text-align: center;
+            color: var(--link-color);
+            font-weight: bold;
+            margin: 4px 0;
+            font-size: 1.1em;
+        }
+
+        /* 內部小水平排列 */
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 仿 V-T 圖小區塊 */
+        .vt-graph-box {
+            border: 1px solid #777;
+            padding: 5px;
+            background: #fff;
+            font-size: 0.8em;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* 彈出視窗 (Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal {
+            background: white; padding: 25px; border-radius: 12px;
+            max-width: 450px; width: 90%; position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .close-btn {
+            position: absolute; top: 10px; right: 15px;
+            background: none; border: none; font-size: 1.5em; cursor: pointer;
+        }
+
+        /* 跨區聯結提示線條效果 */
+        .bridge-indicator {
+            font-size: 0.75em;
+            background: #e9c46a;
+            color: #264653;
+            padding: 1px 5px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>物理公式地圖 (原圖聯結複刻版)</h1>
+    <div class="instruction">點擊區塊右上角的 <b>[-]</b> 可縮合；點擊任何<b>橘色公式框</b>可跳出詳細說明。</div>
+
+    <div class="map-canvas">
+        
+        <div class="cluster" id="left-cluster">
+            <div class="cluster-header">
+                <span>◀ 左側：力矩、平衡與流體</span>
+                <button class="collapse-btn" onclick="toggleCluster('left-cluster')">[-]</button>
+            </div>
+            <div class="cluster-content">
+                
+                <div class="node-box" onclick="showModal('torque_law')">
+                    <div class="title">力矩平衡</div>
+                    F₁ × d₁ = F₂ × d₂ <br> L₁ = L₂ <br> ΔL = 0
+                </div>
+                <div class="arrow-down">▲ 相互連結 ▼</div>
+                <div class="node-box" onclick="showModal('torque_def')">
+                    <div class="title">L 力矩</div>
+                    L = F × d
+                </div>
+
+                <div class="arrow-down">▼ 衍生</div>
+
+                <div class="node-box" onclick="showModal('static_balance')">
+                    <div class="title">靜力平衡 / 移動平衡</div>
+                    ΔF 合力 = 0
+                </div>
+
+                <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
+
+                <div class="node-box" onclick="showModal('force_types')">
+                    <div class="title">力的種類</div>
+                    超距力：萬有引力、靜電力、磁力<br>接觸力：浮力、摩擦力
+                </div>
+                <div class="arrow-down">▼ 接觸力延伸</div>
+                <div class="node-box" onclick="showModal('friction_law')">
+                    <div class="title">摩擦力 f</div>
+                    f = μ × N
+                </div>
+                <div class="node-box" onclick="showModal('buoyancy_law')">
+                    <div class="title">浮力 B</div>
+                    B = V_物在液中 × D_液 = 排開液重
+                </div>
+
+                <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
+
+                <div class="node-box" onclick="showModal('pressure_def')">
+                    <div class="title">P 壓力 (導出量)</div>
+                    P = F / A
+                </div>
+                <div class="arrow-down">▼ 衍生流體壓力</div>
+                <div class="node-box" onclick="showModal('liquid_press')">
+                    <div class="title">靜液壓</div>
+                    P = h × d <br><span style="font-size:0.85em; color:#666;">(連通管原理：液中等高處液壓相等)</span>
+                </div>
+                <div class="node-box" onclick="showModal('pascal_law')">
+                    <div class="title">帕斯卡原理 (密閉容器)</div>
+                    任一點壓力相同 ➔ F₁/A₁ = F₂/A₂
+                </div>
+            </div>
+        </div>
+
+
+        <div class="cluster" id="center-cluster">
+            <div class="cluster-header">
+                <span>🎯 中央核心：力、運動與功</span>
+                <button class="collapse-btn" onclick="toggleCluster('center-cluster')">[-]</button>
+            </div>
+            <div class="cluster-content">
+                
+                <div class="node-box" onclick="showModal('force_core')" style="border-color: #e63946; background: #fff5f5;">
+                    <div class="title" style="color:#e63946; font-size: 1.1em;">F 力</div>
+                    性質、大小、方向、作用點
+                </div>
+
+                <div class="arrow-down">▼ 連結牛頓第二定律</div>
+
+                <div class="node-box" onclick="showModal('f_ma')">
+                    <div class="title">牛頓第二定律 (牛2)</div>
+                    F = m × a
+                </div>
+
+                <div class="node-box" onclick="showModal('inertia_law')">
+                    <div class="title">慣性定律 (牛1)</div>
+                    當 F = 0 ➔ a = 0，靜者恆靜或等 v
+                </div>
+
+                <div class="arrow-down">▼ 連結等加速度運動</div>
+
+                <div class="vt-graph-box">
+                    <b>v-t 速度時間圖 📈</b><br>
+                    面積 = 位移，斜率 = 加速度
+                </div>
+
+                <div class="node-box" onclick="showModal('motion_a')">
+                    <div class="title">等 a 時公式</div>
+                    v = at <br>
+                    v₂ = v₁ + at <br>
+                    Δx = ((v₁+v₂)/2) × t <br>
+                    Δx = v₁t + 1/2 at²
+                </div>
+
+                <div class="flex-row">
+                    <div class="node-box" onclick="showModal('a_def')">a = ΔV / Δt</div>
+                    <div class="node-box" onclick="showModal('v_def')">V = Δx / Δt</div>
+                    <div class="node-box" onclick="showModal('dx_def')">Δx = x₂ - x₁</div>
+                </div>
+
+                <hr style="border: 0; border-top: 2px solid var(--link-color); margin: 20px 0;">
+
+                <div class="node-box" onclick="showModal('w_work')" style="border-color: #2a9d8f;">
+                    <div class="title" style="color:#2a9d8f;">W 功</div>
+                    W = F × S <br>
+                    <span class="bridge-indicator">➔ 向右連結 功能定理 (W = E)</span>
+                </div>
+
+                <div class="arrow-down">▼ 聯結功率</div>
+
+                <div class="node-box" onclick="showModal('p_power')">
+                    <div class="title">P 功率</div>
+                    P = W / t = FS / t = Fv
+                </div>
+
+                <div style="border: 1px dashed #f4a261; padding: 10px; border-radius: 6px; margin-top: 15px; background: #fffbf0;">
+                    <div style="font-size:0.8em; color:#e76f51; font-weight:bold; text-align:center;">⚡ 跨界連結：電學系統</div>
+                    <div class="node-box" onclick="showModal('p_electric')">
+                        P = (V×Q)/t = V×I = I²×R = V²/R
+                    </div>
+                    <div class="flex-row">
+                        <div class="node-box" onclick="showModal('ohm_law')">V = I × R</div>
+                        <div class="node-box" onclick="showModal('r_circuit')">R串聯 = R₁+R₂ <br> 1/R並聯 = 1/R₁+1/R₂</div>
+                    </div>
+                    <div class="node-box" onclick="showModal('w_electric')">
+                        電功 W = V×Q = V×I×t = I²×R×t = (V²/R)×t
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="cluster" id="right-cluster">
+            <div class="cluster-header">
+                <span>▶ 右側：能量與力學能守恆</span>
+                <button class="collapse-btn" onclick="toggleCluster('right-cluster')">[-]</button>
+            </div>
+            <div class="cluster-content">
+                
+                <div class="node-box" onclick="showModal('e_energy')">
+                    <div class="title">能量 E / 質能互換</div>
+                    E = m c²
+                </div>
+
+                <div class="arrow-down">▼ 分流</div>
+
+                <div class="node-box" onclick="showModal('heat_law')">
+                    <div class="title">熱 H</div>
+                    H = M × S × ΔT <br>
+                    1 卡 = 4.18 焦耳 (熱功當量)
+                </div>
+
+                <div class="arrow-down">▼ 力學能分支</div>
+
+                <div class="node-box" onclick="showModal('mech_energy')">
+                    <div class="title">力學能 E</div>
+                    位能 U ➔ U = 1/2 kx² 或 Δx = mgh <br>
+                    動能 K ➔ K = 1/2 m v²
+                </div>
+
+                <div class="arrow-down">▼ 守恆定律</div>
+
+                <div class="node-box" onclick="showModal('energy_conserv')">
+                    <div class="title">力學能守恆 (ΔE = 0)</div>
+                    U₁ + K₁ = U₂ + K₂ <br>
+                    ➔ mgh₁ + 1/2 mv₁² = mgh₂ + 1/2 mv₂²
+                </div>
+
+                <div class="arrow-down">▼ 自由落體特例</div>
+
+                <div class="node-box" onclick="showModal('free_fall_law')">
+                    <div class="title">自由落體 (初速=0)</div>
+                    mgh₁ = 1/2 m v₂² <br>
+                    ➔ v₂ = √(2gh₁) <br>
+                    ➔ h₁ = v₂² / 2g
+                </div>
+
+                <div class="node-box" style="border: 1px dotted #777; font-size: 0.85em; text-align: center; color: #555;">
+                    大氣壓基準參考：<br>
+                    1atm = 76 cm-Hg = 1033.6 gw/cm³ = 1013 hPa
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <h3 id="mTitle" style="color:#1d3557; border-bottom:2px solid #f4a261; padding-bottom:5px; margin-top:0;">公式名稱</h3>
+            <div id="mDesc" style="line-height:1.6; color:#444; margin-top:15px;">說明內容</div>
+        </div>
+    </div>
+
+    <script>
+        // 控制區塊縮合展開
+        function toggleCluster(id) {
+            const el = document.getElementById(id);
+            const btn = el.querySelector('.collapse-btn');
+            el.classList.toggle('collapsed');
+            if(el.classList.contains('collapsed')) {
+                btn.innerText = '[+]';
+            } else {
+                btn.innerText = '[-]';
+            }
+        }
+
+        // 彈窗資料庫（完整涵蓋圖中所有細節）
+        const dataMap = {
+            'torque_law': { title: '力矩平衡與轉動平衡', desc: '當物體所受的<b>合力矩為零 (ΔL = 0)</b>時，物體保持轉動平衡。<br>呈現 <b>L₁ = L₂</b> 或 <b>F₁ × d₁ = F₂ × d₂</b> 的槓桿平衡狀態。' },
+            'torque_def': { title: 'L 力矩定義', desc: '力矩是力使物體繞軸轉動的傾向。<br>公式：<b>L = F × d</b> (力乘以有效臂長)。' },
+            'static_balance': { title: '靜力平衡與移動平衡', desc: '物體同時達到<b>移動平衡 (ΔF 合力 = 0)</b>與<b>轉動平衡 (ΔL = 0)</b>的狀態。物體會保持靜止或做等速度運動。' },
+            'force_types': { title: '力的種類與性質', desc: '力具有<b>大小、方向、作用點</b>三大要素。<br><ul><li><b>超距力：</b> 不需接觸即可作用，如萬有引力、靜電力、磁力。</li><li><b>接觸力：</b> 需接觸，如浮力、摩擦力。</li></ul>' },
+            'friction_law': { title: '摩擦力 f', desc: '阻止物體相對運動的力。<br>公式：<b>f = μ × N</b><br>其中 μ 為摩擦係數，N 為垂直表面的正向力。' },
+            'buoyancy_law': { title: '阿基米德浮力原理', desc: '公式：<b>B = V_物在液中 × D_液 = 排開液重</b>。<br>物體在流體中所受浮力，等於它排開液體的重量。' },
+            'pressure_def': { title: 'P 壓力 (導出量)', desc: '定義：單位面積上所受到的垂直正向力。<br>公式：<b>P = F / A</b>。' },
+            'liquid_press': { title: '靜液壓與連通管原理', desc: '公式：<b>P = h × d</b> (深度 × 液體密度)。<br><b>連通管原理：</b> 在同一種靜止液體中，相同高度的各點液壓必然相等。' },
+            'pascal_law': { title: '帕斯卡原理', desc: '在密閉容器中的靜止流體，任一點受壓力變化時，此壓力會等值傳遞到流體各處。<br>公式：<b>F₁/A₁ = F₂/A₂</b> (常用於液壓省力機械)。' },
+            'force_core': { title: 'F 力 的核心要素', desc: '力是改變物體運動狀態的原因。包含三個核心要素：<b>性質大小、方向、作用點</b>。' },
+            'f_ma': { title: '牛頓第二運動定律', desc: '公式：<b>F = m × a</b>。<br>當物體受到外力作用時，會在力的方向上產生加速度，加速度與合力成正比，與質量成反比。' },
+            'inertia_law': { title: '牛頓第一運動定律 (慣性定律)', desc: '當物體所受合力 <b>F = 0</b> 時，加速度 <b>a = 0</b>。物體將保持原本的狀態：<b>靜者恆靜，動者恆作等速度運動 (等 v)</b>。' },
+            'motion_a': { title: '等加速度運動四大公式', desc: '當加速度 a 固定時：<br>1. <b>v = at</b> (初速為0時)<br>2. <b>v₂ = v₁ + at</b> (末速公式)<br>3. <b>Δx = ((v₁+v₂)/2) × t</b> (平均速度求位移)<br>4. <b>Δx = v₁t + 1/2 at²</b> (位移時間公式)' },
+            'a_def': { title: 'a 加速度定義', desc: '單位時間內速度的變化量。<br>公式：<b>a = ΔV / Δt</b>。' },
+            'v_def': { title: 'V 速度定義 / 等 V 運動', desc: '單位時間內的位移。<br>公式：<b>V = Δx / Δt</b>。若等速(等V)時，位移 <b>Δx = V × Δt</b>。' },
+            'dx_def': { title: 'Δx 位移', desc: '物體位置的改變量。<br>公式：<b>Δx = x₂ - x₁</b> (末位置減初位置)。' },
+            'w_work': { title: 'W 功 的定義', desc: '力與物體在力方向上位移的乘積。<br>公式：<b>W = F × S</b>。<br>藉由<b>功能定理 (W = E)</b>，作功可以轉化為系統的能量變化。' },
+            'p_power': { title: 'P 功率 (力學)', desc: '單位時間內所作的功（作功快慢）。<br>公式：<b>P = W / t = FS / t = Fv</b>。' },
+            'p_electric': { title: '⚡ 電功率', desc: '電路元件在單位時間內消耗的電能。<br>公式：<b>P = (V×Q)/t = V×I = I²×R = V²/R</b>。' },
+            'ohm_law': { title: '歐姆定律', desc: '導體兩端的電壓與通過的電流成正比。<br>公式：<b>V = I × R</b> 或 <b>R = V / I</b>。' },
+            'r_circuit': { title: '電路中的電阻計算', desc: '<ul><li><b>串聯：</b> 電流 I 相同，電壓 V 相加 ➔ <b>R = R₁ + R₂</b></li><li><b>並聯：</b> 電壓 V 相同，電流 I 相加 ➔ <b>1/R = 1/R₁ + 1/R₂</b></li></ul>' },
+            'w_electric': { title: '電功 (消耗電能)', desc: '電阻消耗的總能量。<br>公式：<b>W = V×Q = V×I×t = I²×R×t = (V²/R)×t</b>。' },
+            'e_energy': { title: '能量 E 與 質能互換', desc: '愛因斯坦狹義相對論的核心。<br>公式：<b>E = mc²</b><br>質量與能量本質相同，質量虧損 (m) 可轉化成巨大的能量 (E)。' },
+            'heat_law': { title: '熱能 H', desc: '公式：<b>H = M × S × ΔT</b> (質量×比熱×溫度變化)。<br>熱量與功的換算基準：<b>1 卡 = 4.18 焦耳</b> (熱功當量)。' },
+            'mech_energy': { title: '力學能 E 的組成', desc: '力學能包含動能與位能：<br><ul><li><b>動能 K：</b> 因運動具有的能 ➔ <b>K = 1/2 m v²</b></li><li><b>位能 U：</b> 因位置或形變具有的能 ➔ 重力位能 <b>Δx (U) = mgh</b>，彈力位能 <b>U = 1/2 kx²</b></li></ul>' },
+            'energy_conserv': { title: '力學能守恆定律', desc: '在只有重力或彈力做功的封閉系統中，總力學能保持不變 (<b>ΔE = 0</b>)。<br>公式：<b>U₁ + K₁ = U₂ + K₂</b> ➔ <b>mgh₁ + 1/2 mv₁² = mgh₂ + 1/2 mv₂²</b>。' },
+            'free_fall_law': { title: '自由落體 (力學能守恆特例)', desc: '當初速 v₁ = 0 從高處 h₁ 落下：<br>最高點位能完全等於最低點動能：<b>mgh₁ = 1/2 m v₂²</b>。<br>可移項導出：<ul><li>末速度 <b>v₂ = √(2gh₁)</b></li><li>下落高度 <b>h₁ = v₂² / 2g</b></li></ul>' }
+        };
+
+        function showModal(id) {
+            const data = dataMap[id];
+            if (!data) return;
+            document.getElementById('mTitle').innerHTML = data.title;
+            document.getElementById('mDesc').innerHTML = data.desc;
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
