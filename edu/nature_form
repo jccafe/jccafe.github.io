@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物理公式互動整理庫</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        /* 折疊面板樣式 */
+        .category {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .category-header {
+            background: #f1f5f9;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .category-header::after {
+            content: '▼';
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+        }
+
+        .category.active .category-header::after {
+            transform: rotate(180deg);
+        }
+
+        .category-content {
+            display: none;
+            padding: 10px 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .category.active .category-content {
+            display: block;
+        }
+
+        /* 公式項目樣式 */
+        .formula-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .formula-item:last-child {
+            border-bottom: none;
+        }
+
+        .formula-item:hover {
+            background: #f8fafc;
+            color: var(--primary-color);
+        }
+
+        .formula-name {
+            font-weight: 500;
+        }
+
+        /* 彈跳視窗樣式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .close-btn:hover {
+            color: var(--text-color);
+        }
+
+        .modal-title {
+            color: var(--primary-color);
+            margin-top: 0;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .modal-body {
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+
+        .modal-formula {
+            font-size: 1.4rem;
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background: #f1f5f9;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>基於物理公式整理的互動系統</h1>
+    <div id="accordion-container"></div>
+</div>
+
+<div id="formula-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3 id="modal-title" class="modal-title">公式名稱</h3>
+        <div id="modal-formula" class="modal-formula"></div>
+        <div id="modal-body" class="modal-body">詳細說明</div>
+    </div>
+</div>
+
+<script>
+    // 結構化去重後的公式資料庫 
+    const formulaData = [
+        {
+            category: "一、基礎運動學與動力學",
+            items: [
+                { name: "位移定義", formula: "$$\\Delta x = x_2 - x_1$$", detail: "表示物體位置的變化量。$x_2$ 為末位置，$x_1$ 為初位置。" },
+                { name: "平均速度", formula: "$$V = \\frac{\\Delta x}{\\Delta t}$$", detail: "單位時間內的位移變化率。$\\Delta x$ 為位移，$\\Delta t$ 為時間。" },
+                { name: "平均加速度", formula: "$$a = \\frac{\\Delta V}{\\Delta t}$$", detail: "單位時間內的速度變化率。$\\Delta V$ 為速度變化量，$\\Delta t$ 為時間。" },
+                { name: "等速度運動", formula: "$$\\Delta x = V \\times \\Delta t$$", detail: "當物體作等速度運動時，位移等於速度與時間的乘積。" },
+                { name: "等加速度運動（速度-時間）", formula: "$$v = v_1 + at$$", detail: "末速度 $v$ 等於初速度 $v_1$ 加上加速度 $a$ 與時間 $t$ 的乘積。（原檔提及 $v=at$ 為初速為0之特例）" },
+                { name: "等加速度運動（位移公式一）", formula: "$$\\Delta x = v_1t + \\frac{1}{2}at^2$$", detail: "等加速度運動中，位移與初速、加速度及時間的關係式。" },
+                { name: "等加速度運動（位移公式二）", formula: "$$\\Delta x = \\frac{v_1 + v_2}{2} \\times t$$", detail: "等加速度運動中，位移等於平均速度（初速與末速相加除以二）乘以時間。" },
+                { name: "牛頓第一運動定律（慣性）", formula: "$$當 \\ F = 0 \\rightarrow a = 0$$", detail: "力學平衡時，外力合力為零，則加速度為零。靜者恆靜，動者恆作等速度運動 ($v$)。" },
+                { name: "牛頓第二運動定律", formula: "$$F = m \\times a$$", detail: "物體受外力作用時，會在受力方向上產生加速度。$F$ 為合力，$m$ 為質量，$a$ 為加速度。" },
+                { name: "摩擦力", formula: "$$f = \\mu \\times N$$", detail: "阻礙物體相對運動的力。$f$ 為摩擦力，$\\mu$ 為摩擦係數，$N$ 為正向力。" },
+                { name: "力矩定義", formula: "$$L = F \\times d$$", detail: "造成物體轉動的效果。$L$ 為力矩，$F$ 為作用力，$d$ 為力臂（支點到力作用線的垂直距離）。" }
+            ]
+        },
+        {
+            category: "二、流體、壓力與平衡",
+            items: [
+                { name: "壓力基本定義", formula: "$$P = \\frac{F}{A}$$", detail: "單位面積上所受到的垂直正向力。$P$ 為壓力，$F$ 為正向力，$A$ 為受力面積。" },
+                { name: "靜液壓力", formula: "$$P = h \\times d$$", detail: "液體內某一點因液重產生的壓力。$h$ 為該點與液面的垂直深度，$d$ 為液體密度。" },
+                { name: "連通管原理", formula: "$$液中等高處 \\rightarrow 液壓相等$$", detail: "同一連續靜止液體中，在同一水平高度的各點壓力必定相等。" },
+                { name: "帕斯卡原理", formula: "$$\\frac{F_1}{A_1} = \\frac{F_2}{A_2}$$", detail: "在密閉容器中的靜止流體，任一點所受壓力的改變，會大小不變地傳遞到流體的各部分。可用於省力機械。" },
+                { name: "大氣壓力換算", formula: "$$1 \\text{ atm} = 76 \\text{ cm-Hg} = 1033.6 \\text{ gw/cm}^2 = 1013 \\text{ hPa}$$", detail: "標準大氣壓力的多種單位換算關係。" },
+                { name: "阿基米德浮力原理", formula: "$$B = V_{\\text{物在液中}} \\times D_{\\text{液}} = \\text{排開液重}$$", detail: "物體在流體中所受的浮力 $B$，等於其所排開流體的重量。" },
+                { name: "靜力平衡條件", formula: "$$\\Delta F = 0 \\text{ 且 } \\Delta L = 0$$", detail: "物體同時達到移動平衡（合力 $\\Delta F = 0$）與轉動平衡（合力矩 $\\Delta L = 0$、逆時針力矩 $L_1 = $ 順時針力矩 $L_2$）。" }
+            ]
+        },
+        {
+            category: "三、功、能量與熱學",
+            items: [
+                { name: "功的定義", formula: "$$W = F \\times S$$", detail: "力對物體所做的功。$W$ 為功，$F$ 為沿位移方向的外力，$S$ 為位移。" },
+                { name: "功率", formula: "$$P = \\frac{W}{t} = \\frac{FS}{t} = Fv$$", detail: "單位時間內所做的功，即作功的效率。$P$ 為功率，$t$ 為時間，$v$ 為速度。" },
+                { name: "功能定理", formula: "$$W = \\Delta E$$", detail: "外力對物體所做的總功，等於該物體能量的變化量。" },
+                { name: "動能", formula: "$$K = \\frac{1}{2}mv^2$$", detail: "物體因運動而具有的能量。$m$ 為質量，$v$ 為速度。" },
+                { name: "重力位能與自由落體守恆", formula: "$$mgh_1 = \\frac{1}{2}mv_2^2 \\rightarrow v_2 = \\sqrt{2gh_1}$$", detail: "自由落體由高度 $h_1$ 靜止釋放，重力位能完全轉換為末動能時的關係式。" },
+                { name: "彈性位能", formula: "$$U = \\frac{1}{2}kx^2$$", detail: "彈簧形變時儲存的能量。$k$ 為彈性常數，$x$ 為形變量。" },
+                { name: "力學能守恆定律", formula: "$$U_1 + K_1 = U_2 + K_2 \\rightarrow \\Delta E = 0$$", detail: "在只有保守力（如重力、彈力）作功的情況下，系統的動能與位能總和保持不變。" },
+                { name: "熱量計算", formula: "$$H = M \\times S \\times \\Delta T$$", detail: "物體吸熱或放熱造成的溫度變化。$H$ 為熱量，$M$ 為質量，$S$ 為比熱，$\\Delta T$ 為溫度差。" },
+                { name: "熱功當量", formula: "$1 \\text{ 卡} = 4.18 \\text{ 焦耳}$$", detail: "熱能單位（卡）與能量單位（焦耳）之間的轉換關係。" },
+                { name: "愛因斯坦質能互換", formula: "$$E = mc^2$$", detail: "質量與能量具有等價性。$E$ 為能量，$m$ 為虧損的質量，$c$ 為真空中光速。" }
+            ]
+        },
+        {
+            category: "四、電學與電功率",
+            items: [
+                { name: "歐姆定律", formula: "$$V = I \\times R \\rightarrow R = \\frac{V}{I}$$", detail: "在常溫下，導體兩端的電壓與通過的電流成正比。$V$ 為電壓，$I$ 為電流，$R$ 為電阻。" },
+                { name: "串聯電阻與電路特性", formula: "$$R = R_1 + R_2$$", detail: "串聯時總電阻為各電阻相加。此時電流相同（$I_{\\text{同}}$），電壓相加（$V_{\\text{總}} = V_1 + V_2$）。" },
+                { name: "並聯電阻與電路特性", formula: "$$\\frac{1}{R} = \\frac{1}{R_1} + \\frac{1}{R_2}$$", detail: "並聯時總電阻的倒數等於各分電阻倒數之和。此時電壓相同（$V_{\\text{同}}$），電流相加（$I_{\\text{總}} = I_1 + I_2$）。" },
+                { name: "電功 (焦耳熱)", formula: "$$W = VQ = VIt = I^2Rt = \\frac{V^2}{R}t$$", detail: "電流通過導體時所產生的電能消耗或熱能。$Q$ 為電量（$Q=It$），$t$ 為時間。" },
+                { name: "電功率", formula: "$$P = V \\times \\frac{Q}{t} = VI = I^2R = \\frac{V^2}{R}$$", detail: "單位時間內所消耗的電能。串聯時常用 $I^2R$ 比較（$I$ 相同），並聯時常用 $\\frac{V^2}{R}$ 比較（$V$ 相同）。" }
+            ]
+        }
+    ];
+
+    // 動態渲染網頁 DOM
+    const container = document.getElementById('accordion-container');
+
+    formulaData.forEach((cat, catIdx) => {
+        const catDiv = document.createElement('div');
+        catDiv.className = 'category';
+
+        const header = document.createElement('div');
+        header.className = 'category-header';
+        header.innerText = cat.category;
+        header.onclick = () => catDiv.classList.toggle('active');
+
+        const content = document.createElement('div');
+        content.className = 'category-content';
+
+        cat.items.forEach((item) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'formula-item';
+            itemDiv.innerHTML = `
+                <span class="formula-name">${item.name}</span>
+                <span>${item.formula}</span>
+            `;
+            // 點擊事件彈跳視窗
+            itemDiv.onclick = (e) => {
+                e.stopPropagation(); // 防止觸發折疊
+                openModal(item.name, item.formula, item.detail);
+            };
+            content.appendChild(itemDiv);
+        });
+
+        catDiv.appendChild(header);
+        catDiv.appendChild(content);
+        container.appendChild(catDiv);
+    });
+
+    // 彈跳視窗控制邏輯
+    const modal = document.getElementById('formula-modal');
+    
+    function openModal(name, formula, detail) {
+        document.getElementById('modal-title').innerText = name;
+        document.getElementById('modal-formula').innerHTML = formula;
+        document.getElementById('modal-body').innerHTML = detail;
+        
+        modal.classList.add('show');
+        
+        // 重新觸發 MathJax 對彈窗內新文字的數學渲染
+        if (window.MathJax) {
+            MathJax.typesetPromise([modal]);
+        }
+    }
+
+    function closeModal() {
+        modal.classList.remove('show');
+    }
+
+    // 點擊視窗外部亦可關閉彈窗
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+
+</body>
+</html>
