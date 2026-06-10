@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三餐營養成分分析系統 - 實際飲食餐單版</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #18bc9c;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --info-color: #2980b9;
+            --light-bg: #f8f9fa;
+            --border-color: #dee2e6;
+        }
+        
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, "PingFang TC", "Hiragino Sans GB", "Microsoft JhengHei", sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .patient-info {
+            background-color: var(--light-bg);
+            border-left: 5px solid var(--secondary-color);
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .patient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            font-size: 0.95rem;
+        }
+
+        .patient-grid span strong {
+            color: var(--primary-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 10px 8px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+        }
+
+        .meal-header {
+            background-color: #e8f4f8 !important;
+            font-weight: bold;
+            color: var(--info-color);
+            text-align: left;
+            padding-left: 15px;
+            font-size: 0.95rem;
+        }
+
+        tr:hover {
+            background-color: #f1f4f6;
+        }
+
+        .total-row {
+            background-color: #eaeded !important;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        input[type="number"] {
+            width: 65px;
+            padding: 5px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .alert-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .bg-danger { background-color: var(--danger-color); }
+        .bg-success { background-color: var(--secondary-color); }
+        .bg-warning { background-color: var(--warning-color); }
+
+        .analysis-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .analysis-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .analysis-card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 5px;
+        }
+
+        .suggestions-list {
+            padding-left: 20px;
+        }
+
+        .suggestions-list li {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
+            body { padding: 10px; }
+            .container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>三餐飲食營養成分分析系統</h1>
+    <p style="text-align: center; color: #666; margin-bottom: 25px;">依據「三餐」檔案建立之預設常規膳食評估</p>
+
+    <div class="patient-info">
+        <div class="patient-grid">
+            <span><strong>個案基本資料：</strong>57歲 / 165 cm / 79 kg</span>
+            <span><strong>BMI 狀態：</strong>29.0 (輕度肥胖，減重有助於降血壓)</span>
+            <span><strong>臨床診斷：</strong>高血壓患者</span>
+            <span><strong>評估方針：</strong>高鈣、高纖、控鈉、監控精緻加工食品</span>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table id="nutritionTable">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding-left: 15px; width: 220px;">餐別與食物品項 (基準單位)</th>
+                    <th>輸入數量</th>
+                    <th>熱量<br>(大卡)</th>
+                    <th>蛋白質<br>(克)</th>
+                    <th>膳食纖維<br>(克)</th>
+                    <th>鈣<br>(毫克)</th>
+                    <th>鐵<br>(毫克)</th>
+                    <th>維他命D<br>(微克)</th>
+                    <th>鈉<br>(毫克)</th>
+                </tr>
+            </thead>
+            <tbody id="foodList">
+                </tbody>
+            <tfoot>
+                <tr class="total-row" id="totalRow">
+                    </tr>
+                <tr class="total-row" style="background-color: #e2e4e4 !important;" id="targetRow">
+                    </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="analysis-section">
+        <div class="analysis-card">
+            <h3>臨床營養綜合評估</h3>
+            <div id="clinicalAssessment">
+                </div>
+        </div>
+
+        <div class="analysis-card" style="border-left: 5px solid var(--warning-color);">
+            <h3>針對高血壓與體重之具體改進建議</h3>
+            <ul class="suggestions-list" id="suggestionsList">
+                </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 嚴格依據「三餐」檔案與標示圖檔建立的資料庫（原態食物依據台灣食品營養成分資料庫標準換算）
+    const foodDatabase = [
+        // 早餐
+        { id: "egg", meal: "breakfast", name: "水煮蛋 (2顆)", defaultQty: 1, unit: "份", kcal: 156, protein: 14, fiber: 0, cal: 60, iron: 2.0, vitD: 2.2, sodium: 160 },
+        { id: "toast", meal: "breakfast", name: "麥香土司 (1片,約34g)", defaultQty: 1, unit: "片", kcal: 95.2, protein: 3.2, fiber: 0, cal: 0, iron: 0, vitD: 0, sodium: 69 },
+        { id: "cheese", meal: "breakfast", name: "起司片 (1片, 18.9g)", defaultQty: 1, unit: "片", kcal: 70, protein: 3.5, fiber: 0, cal: 97.9, iron: 0, vitD: 0, sodium: 344.9 },
+        { id: "walnut", meal: "breakfast", name: "胡桃 (10克)", defaultQty: 1, unit: "份", kcal: 69, protein: 0.9, fiber: 0.7, cal: 7, iron: 0.6, vitD: 0, sodium: 0 },
+        { id: "chia", meal: "breakfast", name: "奇亞籽 (10克)", defaultQty: 1, unit: "份", kcal: 44.4, protein: 1.6, fiber: 3.8, cal: 62.2, iron: 0.6, vitD: 0, sodium: 1.6 },
+        { id: "oat", meal: "breakfast", name: "燕麥片 (15克)", defaultQty: 1, unit: "份", kcal: 56, protein: 2.0, fiber: 1.5, cal: 0, iron: 0, vitD: 0, sodium: 0.8 },
+        
+        // 午餐
+        { id: "rice", meal: "lunch", name: "白飯 (100克)", defaultQty: 1, unit: "碗", kcal: 130, protein: 2.7, fiber: 0.6, cal: 2, iron: 0.1, vitD: 0, sodium: 2 },
+        { id: "spinach_L", meal: "lunch", name: "菠菜 (100克)", defaultQty: 1, unit: "份", kcal: 24, protein: 2.5, fiber: 2.4, cal: 81, iron: 2.1, vitD: 0, sodium: 45 },
+        { id: "chicken_L", meal: "lunch", name: "雞里肌肉 (100克)", defaultQty: 1, unit: "份", kcal: 109, protein: 23.4, fiber: 0, cal: 4, iron: 0.4, vitD: 0, sodium: 40 },
+        { id: "loofah", meal: "lunch", name: "絲瓜 (30克)", defaultQty: 1, unit: "份", kcal: 5, protein: 0.3, fiber: 0.3, cal: 3, iron: 0.1, vitD: 0, sodium: 1 },
+        { id: "carrot", meal: "lunch", name: "紅蘿蔔 (20克)", defaultQty: 1, unit: "份", kcal: 8, protein: 0.2, fiber: 0.5, cal: 5, iron: 0.1, vitD: 0, sodium: 6 },
+        { id: "shiitake", meal: "lunch", name: "香菇 (10克)", defaultQty: 1, unit: "份", kcal: 4, protein: 0.3, fiber: 0.4, cal: 0.2, iron: 0.1, vitD: 0, sodium: 0.1 },
+        { id: "kimchi_L", meal: "lunch", name: "泡菜 (10克)", defaultQty: 1, unit: "份", kcal: 5.1, protein: 0.2, fiber: 0.4, cal: 0, iron: 0, vitD: 0, sodium: 101.4 },
+        
+        // 晚餐
+        { id: "instant_noodles", meal: "dinner", name: "統一鮮蝦麵 (1包)", defaultQty: 1, unit: "包", kcal: 360, protein: 9.5, fiber: 1.0, cal: 30, iron: 0.8, vitD: 0, sodium: 1420 },
+        { id: "spinach_D", meal: "dinner", name: "菠菜 (100克)", defaultQty: 1, unit: "份", kcal: 24, protein: 2.5, fiber: 2.4, cal: 81, iron: 2.1, vitD: 0, sodium: 45 },
+        { id: "chicken_D", meal: "dinner", name: "雞里肌肉 (70克)", defaultQty: 1, unit: "份", kcal: 76.3, protein: 16.4, fiber: 0, cal: 2.8, iron: 0.3, vitD: 0, sodium: 28 },
+        { id: "corn", meal: "dinner", name: "玉米 (30克)", defaultQty: 1, unit: "份", kcal: 31, protein: 1.0, fiber: 0.7, cal: 1, iron: 0.2, vitD: 0, sodium: 1 },
+        { id: "kimchi_D", meal: "dinner", name: "泡菜 (10克)", defaultQty: 1, unit: "份", kcal: 5.1, protein: 0.2, fiber: 0.4, cal: 0, iron: 0, vitD: 0, sodium: 101.4 },
+        { id: "soymilk", meal: "dinner", name: "無糖豆漿 (250毫升)", defaultQty: 1, unit: "杯", kcal: 82.5, protein: 8.3, fiber: 3.3, cal: 35, iron: 1.3, vitD: 0, sodium: 12.5 },
+        { id: "whey", meal: "dinner", name: "乳清蛋白粉 (10克)", defaultQty: 1, unit: "份", kcal: 38.1, protein: 8.1, fiber: 0, cal: 0, iron: 0, vitD: 0, sodium: 53.1 },
+        { id: "sesame", meal: "dinner", name: "芝麻粉 (10克)", defaultQty: 1, unit: "份", kcal: 59, protein: 2.0, fiber: 2.1, cal: 126, iron: 0, vitD: 0, sodium: 1 },
+        { id: "banana", meal: "dinner", name: "香蕉 (含皮110g,肉約75g)", defaultQty: 1, unit: "根", kcal: 68, protein: 0.7, fiber: 1.2, cal: 5, iron: 0.3, vitD: 0, sodium: 1 },
+        { id: "guava", meal: "dinner", name: "半個芭樂 (去籽130克)", defaultQty: 1, unit: "份", kcal: 49.4, protein: 1.0, fiber: 4.3, cal: 13, iron: 0.3, vitD: 0, sodium: 3.9 },
+        
+        // 補充劑
+        { id: "multivitamin", meal: "supplements", name: "成人綜合維命 (1錠)", defaultQty: 1, unit: "錠", kcal: 0, protein: 0, fiber: 0, cal: 200, iron: 18, vitD: 10, sodium: 0 },
+        { id: "vitD3", meal: "supplements", name: "維他命D (400iu,1.14粒換算)", defaultQty: 1, unit: "粒", kcal: 0, protein: 0, fiber: 0, cal: 0, iron: 0, vitD: 10, sodium: 0 }
+    ];
+
+    // 高血壓個案一日目標參考值
+    const targetValues = { kcal: 1800, protein: 75, fiber: 25, cal: 1200, iron: 10, vitD: 15, sodium: 2000 };
+
+    const mealNames = {
+        breakfast: "🌅 早餐時段",
+        lunch: "☀️ 午餐時段",
+        dinner: "🌙 晚餐時段",
+        supplements: "💊 每日營養補充劑"
+    };
+
+    function init() {
+        const tbody = document.getElementById('foodList');
+        tbody.innerHTML = '';
+        
+        let currentMeal = "";
+
+        foodDatabase.forEach(food => {
+            if (currentMeal !== food.meal) {
+                currentMeal = food.meal;
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = `<td colspan="9" class="meal-header">${mealNames[currentMeal]}</td>`;
+                tbody.appendChild(headerRow);
+            }
+
+            food.qty = food.defaultQty;
+
+            const tr = document.createElement('tr');
+            tr.id = `row_${food.id}`;
+            tr.innerHTML = `
+                <td style="text-align: left; padding-left: 20px; font-weight: 500;">${food.name}</td>
+                <td><input type="number" min="0" max="10" step="0.1" value="${food.qty}" onchange="updateRowTotal('${food.id}', this.value)"></td>
+                <td id="${food.id}_kcal"></td>
+                <td id="${food.id}_protein"></td>
+                <td id="${food.id}_fiber"></td>
+                <td id="${food.id}_cal"></td>
+                <td id="${food.id}_iron"></td>
+                <td id="${food.id}_vitD"></td>
+                <td id="${food.id}_sodium"></td>
+            `;
+            tbody.appendChild(tr);
+            refreshRowValues(food);
+        });
+
+        renderTargets();
+        calculateTotals();
+    }
+
+    function refreshRowValues(food) {
+        document.getElementById(`${food.id}_kcal`).innerText = (food.kcal * food.qty).toFixed(1);
+        document.getElementById(`${food.id}_protein`).innerText = (food.protein * food.qty).toFixed(1);
+        document.getElementById(`${food.id}_fiber`).innerText = (food.fiber * food.qty).toFixed(1);
+        document.getElementById(`${food.id}_cal`).innerText = Math.round(food.cal * food.qty);
+        document.getElementById(`${food.id}_iron`).innerText = (food.iron * food.qty).toFixed(1);
+        document.getElementById(`${food.id}_vitD`).innerText = (food.vitD * food.qty).toFixed(1);
+        document.getElementById(`${food.id}_sodium`).innerText = (food.sodium * food.qty).toFixed(1);
+    }
+
+    function updateRowTotal(id, value) {
+        const food = foodDatabase.find(f => f.id === id);
+        food.qty = parseFloat(value) || 0;
+        refreshRowValues(food);
+        calculateTotals();
+    }
+
+    function renderTargets() {
+        document.getElementById('targetRow').innerHTML = `
+            <td colspan="2" style="text-align: left;">每日膳食臨床目標值</td>
+            <td>&le; ${targetValues.kcal}</td>
+            <td>~ ${targetValues.protein}</td>
+            <td>&ge; ${targetValues.fiber}</td>
+            <td>&ge; ${targetValues.cal}</td>
+            <td>~ ${targetValues.iron}</td>
+            <td>&ge; ${targetValues.vitD}</td>
+            <td>&le; ${targetValues.sodium}</td>
+        `;
+    }
+
+    function calculateTotals() {
+        let totals = { kcal: 0, protein: 0, fiber: 0, cal: 0, iron: 0, vitD: 0, sodium: 0 };
+
+        foodDatabase.forEach(food => {
+            totals.kcal += food.kcal * food.qty;
+            totals.protein += food.protein * food.qty;
+            totals.fiber += food.fiber * food.qty;
+            totals.cal += food.cal * food.qty;
+            totals.iron += food.iron * food.qty;
+            totals.vitD += food.vitD * food.qty;
+            totals.sodium += food.sodium * food.qty;
+        });
+
+        document.getElementById('totalRow').innerHTML = `
+            <td colspan="2" style="text-align: left;">目前菜單攝取量總計</td>
+            <td>${totals.kcal.toFixed(1)}</td>
+            <td>${totals.protein.toFixed(1)}</td>
+            <td>${totals.fiber.toFixed(1)}</td>
+            <td>${Math.round(totals.cal)}</td>
+            <td>${totals.iron.toFixed(1)}</td>
+            <td>${totals.vitD.toFixed(1)}</td>
+            <td>${totals.sodium.toFixed(1)}</td>
+        `;
+
+        generateClinicalAnalysis(totals);
+    }
+
+    function generateClinicalAnalysis(totals) {
+        const assessmentDiv = document.getElementById('clinicalAssessment');
+        const suggestionsList = document.getElementById('suggestionsList');
+        
+        assessmentDiv.innerHTML = '';
+        suggestionsList.innerHTML = '';
+
+        // 1. 鈉含量（高血壓關鍵）
+        let sodiumAlert = totals.sodium > targetValues.sodium ? 
+            `<span class="alert-badge bg-danger">鈉量破表</span> 當前總鈉量高達 ${totals.sodium.toFixed(1)} mg。晚餐中的加工食品（泡麵調味包與加工起司）拉高了整體鈉負擔，極易引發水滯留、使血壓劇烈波動。` : 
+            `<span class="alert-badge bg-success">控鈉理想</span> 鈉攝取量控制在安全範圍。`;
+
+        // 2. 鈣與維他命D3
+        let calciumAlert = totals.cal >= targetValues.cal ?
+            `<span class="alert-badge bg-success">鈣質達標</span> 鈣攝取量達 ${Math.round(totals.cal)} mg，配合高劑量維他命D，有助於維持平滑肌張力穩定。` :
+            `<span class="alert-badge bg-warning">鈣質稍嫌不足</span> 總鈣量未達 1200 mg，不利於血管擴張與舒張壓調控。`;
+
+        // 3. 熱量與蛋白質（體重管理）
+        let kcalAlert = totals.kcal > targetValues.kcal ?
+            `<span class="alert-badge bg-warning">熱量偏高</span> 總熱量 ${totals.kcal.toFixed(1)} 大卡。個案 BMI 29.0，若需減重，建議維持在 1600-1800 大卡之間。` :
+            `<span class="alert-badge bg-success">熱量適宜</span> 熱量處於健康體重管理安全區間。`;
+
+        assessmentDiv.innerHTML = `
+            <p><strong>1. 鈉鹽控管度：</strong>${sodiumAlert}</p>
+            <p><strong>2. 降壓微量元素 (鈣/D3)：</strong>${calciumAlert}</p>
+            <p><strong>3. 體重管理熱量控制：</strong>${kcalAlert}</p>
+            <p><strong>4. 蛋白質與纖維：</strong>蛋白質獲取充足 (${totals.protein.toFixed(1)}g)，植物性蛋白質（豆漿、奇亞籽）配比良善；總纖維量約 ${totals.fiber.toFixed(1)}g，表現中規中矩。</p>
+        `;
+
+        // 改進建議列表
+        if (totals.sodium > targetValues.sodium) {
+            suggestionsList.innerHTML += `<li><strong>減少晚餐泡麵鹽分：</strong>「統一鮮蝦麵」單包鈉含量即達 1420 毫克。建議烹煮時**調味粉包僅放 1/3**，或更換為非油炸的天然蕎麥麵、減鈉蒟蒻麵，此單一舉動即可省下近 1000 毫克的鈉。</li>`;
+        }
+        suggestionsList.innerHTML += `<li><strong>優化早餐澱粉：</strong>早餐的「麥香土司」單片雖方便，但含有加工精鹽（鈉含量約 69mg）。建議可將土司換為等重的「燕麥片」或地瓜，既能提高膳食纖維、富含能排鈉的「鉀」離子，又能降低鈉攝取。</li>`;
+        suggestionsList.innerHTML += `<li><strong>調整維他命D補充劑：</strong>當前菜單中已包含一顆「成人綜合維他命（含10微克/400IU D3）」，若再額外補一顆「400iu的維他命D」，總計為 20 微克（800IU），此劑量安全且達標，無須再增量。</li>`;
+        suggestionsList.innerHTML += `<li><strong>注意水果去籽與肉量：</strong>晚餐的芭樂去籽（130g）是非常棒的高纖低GI選擇。唯獨晚餐豐富度較高（有麵、肉、豆漿、乳清、香蕉與芭樂），為利於 BMI 輕度肥胖的減重進度，可適度將晚餐的雞里肌肉由 70g 微調至 50g。</li>`;
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
