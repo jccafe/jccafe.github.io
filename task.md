@@ -22,5 +22,6 @@
 
 ## Phase 3: 儀表板整合與專案完成 (已完成)
 - [x] 執行 `Build-LogsDashboard.ps1` 將專案規格匯入「知識庫總覽」
+- [x] 導入 GitHub Actions 雲端自動更新目錄
 - [x] 撰寫 Walkthrough 結案報告
 - [x] 正式交付專案並上線

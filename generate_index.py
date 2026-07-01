@@ -143,7 +143,7 @@ def generate_index():
             </section>
             """
 
-    # 完整的 HTML 模板 (採用 Glassmorphism 精緻暗黑風格 - 兩欄式導覽版)
+    # 完整的 HTML 模板 (採用 Glassmorphism 精緻暗黑風格 - 兩欄式導覽版 - 星期背景動態版)
     html_content = f"""<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -152,10 +152,10 @@ def generate_index():
     <title>JCCafe 網站目錄</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {{
-            --bg-gradient: radial-gradient(circle at 50% 50%, #0d0d1a 0%, #040408 100%);
+            --bg-gradient: radial-gradient(circle at 50% 50%, #0d0d1a 0%, #040408 100%); /* 預設背景，會由 JS 動態替換 */
             --glass-bg: rgba(255, 255, 255, 0.02);
             --glass-border: rgba(255, 255, 255, 0.06);
             --glass-focus: rgba(255, 255, 255, 0.12);
@@ -184,6 +184,7 @@ def generate_index():
             align-items: center;
             padding: 3rem 1.5rem;
             overflow-x: hidden;
+            transition: background var(--transition-speed);
         }}
 
         /* 背景微光裝飾 */
@@ -191,7 +192,7 @@ def generate_index():
             position: absolute;
             width: 600px;
             height: 600px;
-            background: rgba(99, 102, 241, 0.08);
+            background: rgba(255, 255, 255, 0.03); /* 使用中性微光以搭配星期色 */
             filter: blur(140px);
             border-radius: 50%;
             top: -200px;
@@ -204,7 +205,7 @@ def generate_index():
             position: absolute;
             width: 600px;
             height: 600px;
-            background: rgba(139, 92, 246, 0.06);
+            background: rgba(255, 255, 255, 0.02);
             filter: blur(140px);
             border-radius: 50%;
             bottom: -200px;
@@ -656,6 +657,21 @@ def generate_index():
     <div class="ambient-glow-1"></div>
     <div class="ambient-glow-2"></div>
 
+    <script>
+        // [動態功能] 依照星期切換不同的背景漸層色 (精緻暗黑主題系列)
+        const weekdayGradients = [
+            'radial-gradient(circle at 50% 50%, #290808 0%, #050101 100%)', // 星期日 (深紅)
+            'radial-gradient(circle at 50% 50%, #0a1128 0%, #000411 100%)', // 星期一 (靛藍)
+            'radial-gradient(circle at 50% 50%, #061c14 0%, #010604 100%)', // 星期二 (松綠)
+            'radial-gradient(circle at 50% 50%, #051c2c 0%, #010813 100%)', // 星期三 (極光藍)
+            'radial-gradient(circle at 50% 50%, #1e0936 0%, #080212 100%)', // 星期四 (暗紫)
+            'radial-gradient(circle at 50% 50%, #300615 0%, #0e0105 100%)', // 星期五 (櫻桃紫)
+            'radial-gradient(circle at 50% 50%, #2b1504 0%, #0e0600 100%)'  // 星期六 (暖橘焦糖)
+        ];
+        const currentDay = new Date().getDay();
+        document.documentElement.style.setProperty('--bg-gradient', weekdayGradients[currentDay]);
+    </script>
+
     <div class="container">
         <header>
             <h1 class="logo-title">JCCafe 網站目錄</h1>
@@ -813,7 +829,7 @@ def generate_index():
     with open('index.html', 'w', encoding='utf-8') as f:
         f.write(html_content)
     
-    print(f"[OK] 目錄已成功生成至 index.html，共包含 {len(files)} 個檔案，已完成兩欄式導覽優化。")
+    print(f"[OK] 目錄已成功生成至 index.html，共包含 {len(files)} 個檔案，已完成兩欄式導覽優化與星期背景設定。")
 
 if __name__ == "__main__":
     generate_index()
