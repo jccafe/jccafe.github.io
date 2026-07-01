@@ -85,7 +85,9 @@ def generate_index():
         sorted_dirs.remove('根目錄')
         sorted_dirs.insert(0, '根目錄')
         
+    nav_items_html = ""
     sections_html = ""
+    
     if not files_by_dir:
         sections_html = """
         <div class="no-files">
@@ -93,8 +95,27 @@ def generate_index():
             <p>目前尚未發現任何網頁文件。</p>
         </div>
         """
+        nav_items_html = """
+        <a href="#" class="nav-item active">
+            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+            <span class="nav-text">無目錄</span>
+        </a>
+        """
     else:
-        for directory in sorted_dirs:
+        for idx, directory in enumerate(sorted_dirs):
+            safe_id = f"dir-{directory.replace('/', '-')}"
+            active_class = "active" if idx == 0 else ""
+            
+            # 左側選單按鈕
+            nav_items_html += f"""
+            <a href="#{safe_id}" class="nav-item {active_class}" data-target="{safe_id}">
+                <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+                <span class="nav-text">{directory}</span>
+                <span class="nav-badge">{len(files_by_dir[directory])}</span>
+            </a>
+            """
+            
+            # 右側卡片
             dir_files = files_by_dir[directory]
             cards_html = ""
             for f in dir_files:
@@ -109,11 +130,11 @@ def generate_index():
                 </div>
                 """
             
-            # 第一階層的資料夾區塊
+            # 右側區塊
             sections_html += f"""
-            <section class="dir-section" data-dir-name="{directory.lower()}">
+            <section id="{safe_id}" class="dir-section">
                 <div class="dir-header">
-                    <svg class="dir-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+                    <svg class="dir-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
                     <h2 class="dir-title">{directory} <span class="dir-count">({len(dir_files)})</span></h2>
                 </div>
                 <div class="grid">
@@ -122,7 +143,7 @@ def generate_index():
             </section>
             """
 
-    # 完整的 HTML 模板 (採用 Glassmorphism 精緻暗黑風格 - 二階層歸類版)
+    # 完整的 HTML 模板 (採用 Glassmorphism 精緻暗黑風格 - 兩欄式導覽版)
     html_content = f"""<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -134,7 +155,7 @@ def generate_index():
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {{
-            --bg-gradient: radial-gradient(circle at 50% 50%, #10101e 0%, #05050a 100%);
+            --bg-gradient: radial-gradient(circle at 50% 50%, #0d0d1a 0%, #040408 100%);
             --glass-bg: rgba(255, 255, 255, 0.02);
             --glass-border: rgba(255, 255, 255, 0.06);
             --glass-focus: rgba(255, 255, 255, 0.12);
@@ -143,13 +164,14 @@ def generate_index():
             --accent-primary: #6366f1;
             --accent-gradient: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
             --accent-glow: rgba(99, 102, 241, 0.25);
-            --transition-speed: 0.3s;
+            --transition-speed: 0.25s;
         }}
 
         * {{
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            scroll-behavior: smooth;
         }}
 
         body {{
@@ -167,12 +189,12 @@ def generate_index():
         /* 背景微光裝飾 */
         .ambient-glow-1 {{
             position: absolute;
-            width: 500px;
-            height: 500px;
-            background: rgba(99, 102, 241, 0.1);
-            filter: blur(120px);
+            width: 600px;
+            height: 600px;
+            background: rgba(99, 102, 241, 0.08);
+            filter: blur(140px);
             border-radius: 50%;
-            top: -150px;
+            top: -200px;
             left: -150px;
             z-index: -1;
             pointer-events: none;
@@ -180,12 +202,12 @@ def generate_index():
 
         .ambient-glow-2 {{
             position: absolute;
-            width: 500px;
-            height: 500px;
-            background: rgba(139, 92, 246, 0.08);
-            filter: blur(120px);
+            width: 600px;
+            height: 600px;
+            background: rgba(139, 92, 246, 0.06);
+            filter: blur(140px);
             border-radius: 50%;
-            bottom: -150px;
+            bottom: -200px;
             right: -150px;
             z-index: -1;
             pointer-events: none;
@@ -193,14 +215,14 @@ def generate_index():
 
         .container {{
             width: 100%;
-            max-width: 1200px;
+            max-width: 1300px;
             position: relative;
         }}
 
         /* Header */
         header {{
             text-align: center;
-            margin-bottom: 3.5rem;
+            margin-bottom: 2.5rem;
             animation: fadeInDown 0.8s ease-out;
         }}
 
@@ -209,11 +231,9 @@ def generate_index():
             font-weight: 800;
             background: linear-gradient(135deg, #ffffff 40%, #c7d2fe 100%);
             -webkit-background-clip: text;
-            -webkit-fill-color: transparent;
-            -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -1px;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.5rem;
         }}
 
         .subtitle {{
@@ -225,7 +245,7 @@ def generate_index():
         /* Search Bar */
         .search-container {{
             max-width: 600px;
-            margin: 0 auto 3.5rem auto;
+            margin: 0 auto 3rem auto;
             position: relative;
             animation: fadeInUp 0.8s ease-out 0.2s both;
         }}
@@ -265,17 +285,110 @@ def generate_index():
             color: #818cf8;
         }}
 
-        /* Main Content Box */
-        #mainContent {{
+        /* Two-Column App Layout */
+        .app-layout {{
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2.5rem;
             width: 100%;
+            align-items: start;
             animation: fadeInUp 0.8s ease-out 0.4s both;
+        }}
+
+        /* Left Sidebar */
+        .sidebar {{
+            position: sticky;
+            top: 2rem;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 1.5rem 1rem;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+        }}
+
+        .sidebar::-webkit-scrollbar {{
+            display: none; /* Chrome/Safari */
+        }}
+
+        .nav-menu {{
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }}
+
+        .nav-item {{
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.9rem 1.2rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 14px;
+            transition: all var(--transition-speed);
+            font-weight: 500;
+            border: 1px solid transparent;
+        }}
+
+        .nav-item:hover {{
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }}
+
+        .nav-item.active {{
+            color: var(--text-primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-color: rgba(99, 102, 241, 0.25);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);
+        }}
+
+        .nav-icon {{
+            color: var(--text-secondary);
+            transition: color var(--transition-speed);
+            flex-shrink: 0;
+        }}
+
+        .nav-item.active .nav-icon {{
+            color: #818cf8;
+        }}
+
+        .nav-text {{
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }}
+
+        .nav-badge {{
+            margin-left: auto;
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            padding: 0.15rem 0.45rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }}
+
+        .nav-item.active .nav-badge {{
+            background: rgba(99, 102, 241, 0.3);
+            color: #c7d2fe;
+        }}
+
+        /* Right Content Area */
+        .content-area {{
+            display: flex;
+            flex-direction: column;
+            width: 100%;
         }}
 
         /* Directory Section (First Tier) */
         .dir-section {{
             width: 100%;
             background: rgba(255, 255, 255, 0.01);
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.03);
             border-radius: 24px;
             padding: 2.2rem;
             margin-bottom: 2.5rem;
@@ -283,10 +396,11 @@ def generate_index():
             -webkit-backdrop-filter: blur(12px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             transition: border-color var(--transition-speed);
+            scroll-margin-top: 2rem; /* 預留滾動頂部間距 */
         }}
 
         .dir-section:hover {{
-            border-color: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.12);
         }}
 
         .dir-header {{
@@ -408,6 +522,7 @@ def generate_index():
 
         /* Empty State */
         .no-files {{
+            width: 100%;
             text-align: center;
             padding: 5rem 2rem;
             background: var(--glass-bg);
@@ -475,19 +590,64 @@ def generate_index():
             to {{ opacity: 1; }}
         }}
 
-        /* RWD */
+        /* RWD 響應式佈局 */
+        @media (max-width: 900px) {{
+            .app-layout {{
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }}
+            
+            body {{
+                padding: 1.5rem 1rem;
+            }}
+            
+            /* 行動端將 Sidebar 變更為頂部橫向滑動導覽列 */
+            .sidebar {{
+                position: sticky;
+                top: 0.5rem;
+                z-index: 100;
+                max-height: none;
+                padding: 0.6rem 0.8rem;
+                border-radius: 16px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+                border-color: var(--glass-border);
+            }}
+            
+            .nav-menu {{
+                flex-direction: row;
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 0.2rem;
+                scrollbar-width: none;
+            }}
+            
+            .nav-menu::-webkit-scrollbar {{
+                display: none;
+            }}
+            
+            .nav-item {{
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+                flex-shrink: 0;
+            }}
+            
+            .nav-badge {{
+                margin-left: 0.4rem;
+            }}
+
+            .dir-section {{
+                padding: 1.6rem 1.2rem;
+                scroll-margin-top: 6.5rem; /* 預留給手機端頂部導覽列的空間 */
+            }}
+            
+            .grid {{
+                grid-template-columns: 1fr;
+            }}
+        }}
+
         @media (max-width: 640px) {{
             .logo-title {{
                 font-size: 2.4rem;
-            }}
-            body {{
-                padding: 2rem 1rem;
-            }}
-            .dir-section {{
-                padding: 1.5rem 1.2rem;
-            }}
-            .grid {{
-                grid-template-columns: 1fr;
             }}
         }}
     </style>
@@ -507,9 +667,19 @@ def generate_index():
             <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         </div>
 
-        <main id="mainContent">
-            {sections_html}
-        </main>
+        <div class="app-layout">
+            <!-- 左欄：主目錄側邊欄 (Sidebar) -->
+            <aside class="sidebar">
+                <nav class="nav-menu">
+                    {nav_items_html}
+                </nav>
+            </aside>
+
+            <!-- 右欄：內容展示區 (Content Area) -->
+            <main class="content-area" id="mainContent">
+                {sections_html}
+            </main>
+        </div>
 
         <footer>
             <p class="update-time">最後更新時間：{now_str}</p>
@@ -518,11 +688,59 @@ def generate_index():
     </div>
 
     <script>
-        // 本地即時搜尋過濾與二階層連動顯示隱藏功能
         const searchInput = document.getElementById('searchInput');
         const sections = document.querySelectorAll('.dir-section');
         const mainContent = document.getElementById('mainContent');
+        const navItems = document.querySelectorAll('.nav-item');
 
+        // 1. 點擊導覽列平滑滾動至對應區塊
+        navItems.forEach(item => {{
+            item.addEventListener('click', (e) => {{
+                e.preventDefault();
+                const targetId = item.getAttribute('data-target');
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {{
+                    const offset = window.innerWidth <= 900 ? 110 : 30;
+                    const bodyRect = document.body.getBoundingClientRect().top;
+                    const elementRect = targetSection.getBoundingClientRect().top;
+                    const elementPosition = elementRect - bodyRect;
+                    const offsetPosition = elementPosition - offset;
+                    
+                    window.scrollTo({{
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    }});
+                }}
+            }});
+        }});
+
+        // 2. Scrollspy 滾動追蹤高亮與自動橫向對齊
+        window.addEventListener('scroll', () => {{
+            let current = '';
+            const offset = window.innerWidth <= 900 ? 130 : 100;
+            
+            sections.forEach(section => {{
+                if (section.style.display !== 'none') {{
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= (sectionTop - offset)) {{
+                        current = section.getAttribute('id');
+                    }}
+                }}
+            }});
+            
+            navItems.forEach(item => {{
+                item.classList.remove('active');
+                if (item.getAttribute('data-target') === current) {{
+                    item.classList.add('active');
+                    // 行動端滾動時，自動對齊頂部水平選單
+                    if (window.innerWidth <= 900) {{
+                        item.scrollIntoView({{ behavior: 'smooth', block: 'nearest', inline: 'center' }});
+                    }}
+                }}
+            }});
+        }});
+
+        // 3. 本地即時搜尋過濾與兩欄同步隱藏功能
         searchInput.addEventListener('input', (e) => {{
             const query = e.target.value.toLowerCase().trim();
             let overallVisibleCount = 0;
@@ -544,11 +762,15 @@ def generate_index():
                     }}
                 }});
                 
-                // 如果整個目錄區塊下沒有任何卡片符合條件，則隱藏該區塊
+                const sectionId = section.getAttribute('id');
+                const correspondingNavItem = document.querySelector(`.nav-item[data-target="${{sectionId}}"]`);
+                
                 if (sectionVisibleCount === 0) {{
                     section.style.display = 'none';
+                    if (correspondingNavItem) correspondingNavItem.style.display = 'none';
                 }} else {{
                     section.style.display = 'block';
+                    if (correspondingNavItem) correspondingNavItem.style.display = 'flex';
                 }}
             }});
             
@@ -572,7 +794,7 @@ def generate_index():
             }}
         }});
 
-        // 卡片滑鼠懸停光暈效果 (CSS 變數)
+        // 4. 卡片滑鼠懸停光暈效果 (CSS 變數)
         const cards = document.querySelectorAll('.card');
         cards.forEach(card => {{
             card.addEventListener('mousemove', (e) => {{
@@ -591,7 +813,7 @@ def generate_index():
     with open('index.html', 'w', encoding='utf-8') as f:
         f.write(html_content)
     
-    print(f"[OK] 目錄已成功生成至 index.html，共包含 {len(files)} 個檔案，已完成二階層歸類。")
+    print(f"[OK] 目錄已成功生成至 index.html，共包含 {len(files)} 個檔案，已完成兩欄式導覽優化。")
 
 if __name__ == "__main__":
     generate_index()
