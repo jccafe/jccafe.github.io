@@ -127,13 +127,15 @@
         <h1>工作日誌 - 2026-07-01</h1>
 
         <h2>當日工作日誌</h2>
-        <p>今天我們成功啟動並完全交付了 <strong>github_html</strong> 專案。這是一個用於自動化更新 <code>jccafe.github.io</code> 網站目錄的部署與編譯工具。我們完成的具體任務如下：</p>
+        <p>今天我們成功啟動、開發並完全交付了 <strong>github_html</strong> 專案。這是一個用於自動化更新 <code>jccafe.github.io</code> 網站目錄的部署與編譯工具。我們完成的具體任務如下：</p>
         <ul>
             <li><strong>專案初始化與架構設計</strong>：
                 <ul>
                     <li>閱讀並分析了需求單 <code>ProjectBrief .md</code>。</li>
                     <li>建立了企劃書、規格書與系統設計文件 SDD。</li>
-                    <li>設定了 AI 開發規則配置 <code>.agents/AGENTS.md</code> 並初始化了專案根目錄的 <code>task.md</code>。</li>
+                    <li>建立並完整撰寫了專案使用說明手冊 <code>README.md</code>，使專案具備完善的引導。</li>
+                    <li>設定並更新了專案 AI 開發規則配置 <code>.agents/AGENTS.md</code>，限制編碼輸出並定義兩欄式 UI。</li>
+                    <li>初始化了專案根目錄的 <code>task.md</code> 開發任務清單，目前所有開發階段已 100% 完成。</li>
                 </ul>
             </li>
             <li><strong>核心部署與生成器實作</strong>：
@@ -141,26 +143,25 @@
                     <li>建立並設定了專案 Python 虛擬環境 (<code>.venv</code>)。</li>
                     <li>實作了目錄生成器 <code>generate_index.py</code>。使用 Python 內建輕量級 <code>html.parser</code> 提取網頁標題，動態生成首頁目錄 <code>index.html</code>。</li>
                     <li>實作了自動化部署腳本 <code>deploy.py</code>。自動執行拉取、重新生成目錄、提交與推送工作流，並具備合併衝突與無 Git 儲存庫預檢防錯機制。</li>
-                    <li>初始化本地 Git 並與遠端儲存庫綁定，成功執行第一次端到端自動部署。</li>
+                    <li>初始化本地 Git 並與遠端儲存庫綁定，成功執行了自動部署。</li>
                 </ul>
             </li>
-            <li><strong>介面二階層歸類重構</strong>：
+            <li><strong>介面二階層歸類與兩欄式導覽優化 (Premium Layout & RWD)</strong>：
                 <ul>
-                    <li>修改了 <code>generate_index.py</code> 的 HTML 渲染邏輯，使卡片自動依其所在資料夾（如 <code>edu/</code>, <code>articles/</code> 等）分群歸類於第一階層。</li>
-                    <li>更新了 JavaScript 搜尋過濾器。搜尋時若某個資料夾下無任何符合卡片，該整個資料夾區塊與左欄對應選項會自動隱藏。</li>
+                    <li><strong>分群歸類</strong>：修改了 <code>generate_index.py</code> 的 HTML 渲染邏輯，使卡片自動依其所在資料夾（如 <code>edu/</code>, <code>articles/</code> 等）分群歸類於第一階層。</li>
+                    <li><strong>兩欄式佈局</strong>：重構版面為現代化兩欄式佈局：左側為固定的磨砂玻璃資料夾導覽側邊欄 (Sidebar)；右側為卡片內容區。</li>
+                    <li><strong>RWD 響應式優化</strong>：完成行動端適配，小螢幕下左側側邊欄會自動收合轉換成頂部橫向水平滑動的導覽 Tab 欄。</li>
+                    <li><strong>JS 智慧聯動</strong>：實作了平滑滾動定位與 <strong>Scrollspy (滾動選單追蹤)</strong> 功能；更新了 JavaScript 搜尋過濾器，實現即時搜尋時無結果的資料夾區塊與左欄選單項目同步隱藏。</li>
                 </ul>
             </li>
-            <li><strong>兩欄式導覽優化 (Premium Layout & RWD)</strong>：
+            <li><strong>動態星期主題背景</strong>：
                 <ul>
-                    <li>重構版面為現代化兩欄式佈局：左側為固定的磨砂玻璃資料夾導覽側邊欄 (Sidebar)，右側為卡片內容區。</li>
-                    <li>實作了平滑滾動定位，並導入了 <strong>Scrollspy (滾動選單追蹤)</strong> 功能——滾動瀏覽右側內容時，左側對應的選單項目會自動獲得高亮，並在行動端自動將 Active 項目橫向滾動對齊到螢幕中心。</li>
-                    <li>完成行動端 (RWD) 響應式優化：小螢幕下左側側邊欄會自動收合轉換成頂部橫向水平滑動的導覽 Tab 欄。</li>
+                    <li>在 <code>generate_index.py</code> 的 HTML 模板中嵌入 JavaScript，能根據使用者開啟網頁時的本地星期幾（0-6），自動將 CSS 變數 <code>--bg-gradient</code> 替換為 7 種不同質感的暗黑主題漸層。</li>
                 </ul>
             </li>
             <li><strong>導入 GitHub Actions 雲端自動更新</strong>：
                 <ul>
-                    <li>建立了 <code>.github/workflows/update-index.yml</code> 工作流。</li>
-                    <li>設定當有新 HTML 網頁推送至 GitHub 儲存庫時，雲端伺服器會自動執行 <code>generate_index.py</code> 並將新生成的 <code>index.html</code> 自動提交推送。設定了排除項與 <code>[skip ci]</code>，防止 Actions 自我提交時造成無限循環執行。</li>
+                    <li>建立了 <code>.github/workflows/update-index.yml</code> 工作流。當有新 HTML 網頁推送至 <code>main</code> 時，雲端自動執行編譯並提交目錄，避免本機手動部署。</li>
                 </ul>
             </li>
         </ul>
@@ -173,7 +174,7 @@
             </li>
             <li><strong>非 Git 儲存庫環境出錯</strong>：
                 <p><strong>問題</strong>：若使用者在尚未初始化為 Git 儲存庫的資料夾中直接運行 <code>deploy.py</code>，Git 命令會崩潰並輸出大量英文錯誤。</p>
-                <p><strong>解決</strong>：在 <code>deploy.py</code> 中加入預檢步驟，檢查是否為 Git 工作區。若非 Git 儲存庫，會輸出清晰、友善的繁體中文錯誤提示，指引使用者初始化與連線遠端。</p>
+                <p><strong>解決</strong>：在 <code>deploy.py</code> 中加入預檢步驟，檢查是否為 Git 工作區。若非 Git 儲存庫，會輸出清晰、友善的繁體中文錯誤提示。</p>
             </li>
         </ul>
 
